@@ -12,4 +12,9 @@ public class HelloController {
     public String hello() {
         return "Hello from Spring Boot Backend!";
     }
+
+    @PostMapping("/helloPost")
+    public String helloPost(@RequestBody String message) {
+        return "Hello from Spring Boot Backend!";
+    }
 }
