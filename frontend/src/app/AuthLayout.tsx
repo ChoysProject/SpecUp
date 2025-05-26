@@ -19,6 +19,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     // 토큰이 있으면 로그인 상태로 간주
     const token = typeof window !== 'undefined' ? localStorage.getItem("accessToken") : null;
     setIsLoggedIn(!!token);
+    // 세션이 없고, 로그인/회원가입/로딩 페이지가 아니면 무조건 로그인 페이지로 이동
+    if (!token && !hideLayout) {
+      window.location.href = "/login";
+    }
   }, [pathname]);
 
   return (
