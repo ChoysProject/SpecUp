@@ -3,6 +3,7 @@ package com.spec.service;
 import com.spec.domain.Certification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.spec.repository.CertificationRepository;
 
 import java.util.List;
 import java.util.Optional;
