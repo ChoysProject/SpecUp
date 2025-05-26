@@ -16,12 +16,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     pathname === "/loading";
 
   useEffect(() => {
-    // 토큰이 있으면 로그인 상태로 간주
     const token = typeof window !== 'undefined' ? localStorage.getItem("accessToken") : null;
     setIsLoggedIn(!!token);
-    // 세션이 없고, 로그인/회원가입/로딩 페이지가 아니면 무조건 로그인 페이지로 이동
-    if (!token && !hideLayout) {
-      window.location.href = "/login";
+    // 로그인/회원가입/로딩 페이지가 아니면 세션 체크
+    if (!hideLayout) {
+      if (!token) {
+        // 세션 없으면 로그인으로
+        window.location.href = "/login";
+      } else if (pathname === "/login" || pathname === "/register") {
+        // 세션 있는데 로그인/회원가입 페이지면 메인으로
+        window.location.href = "/main";
+      }
     }
   }, [pathname]);
 
