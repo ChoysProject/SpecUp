@@ -30,7 +30,7 @@ export default function LoginPage() {
       });
       if (res.status === 404) {
         toast.info("가입된 이메일이 없습니다. 회원가입 페이지로 이동합니다.");
-        setTimeout(() => router.push("/register"), 1200);
+        setTimeout(() => router.push(`/register?email=${encodeURIComponent(email)}`), 1200);
         return;
       }
       // 200(성공) 또는 401(비번 틀림) 모두 비밀번호 입력칸 보여주기
@@ -58,7 +58,7 @@ export default function LoginPage() {
       });
       if (res.status === 404) {
         toast.info("가입된 이메일이 없습니다. 회원가입 페이지로 이동합니다.");
-        setTimeout(() => router.push("/register"), 1200);
+        setTimeout(() => router.push(`/register?email=${encodeURIComponent(email)}`), 1200);
         return;
       }
       if (res.status === 401) {
@@ -137,6 +137,7 @@ export default function LoginPage() {
               border: "1px solid #ddd",
               marginBottom: 12,
               outline: "none",
+              color: "#000",
             }}
             disabled={showPassword}
           />
@@ -158,6 +159,7 @@ export default function LoginPage() {
                   border: "1px solid #ddd",
                   marginBottom: 12,
                   outline: "none",
+                  color: "#000",
                 }}
               />
             </>

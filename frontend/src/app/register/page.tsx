@@ -1,14 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailParam = searchParams.get("email");
   const [form, setForm] = useState({
-    email: '',
+    email: emailParam || '',
     name: '',
     phone: '',
     password: '',
@@ -131,7 +133,7 @@ export default function RegisterPage() {
         {/* 이메일 */}
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>이메일</label>
-          <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="이메일을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', marginBottom: 0 }} autoComplete="off" />
+          <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="이메일을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', marginBottom: 0 }} autoComplete="off" readOnly={!!emailParam} />
         </div>
         {/* 이름 */}
         <div>
