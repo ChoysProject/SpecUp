@@ -104,7 +104,7 @@ export default function LoginPage() {
       >
         {/* 로고 */}
         <Image
-          src="/SPECUP.PNG"
+          src="/images/SPECUP.PNG"
           alt="스펙업 로고"
           width={180}
           height={180}
