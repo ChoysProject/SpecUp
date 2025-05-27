@@ -1,6 +1,10 @@
 import React from 'react';
 
 export default function Footer() {
+  const handleMySpec = () => {
+    window.location.href = '/myspec';
+  };
+
   return (
     <footer style={{
       position: 'fixed',
@@ -28,7 +32,7 @@ export default function Footer() {
         <span role="img" aria-label="community" style={{ color: '#3182f6' }}>💬</span>
         <span style={{ fontSize: '0.8rem', color: '#3182f6' }}>커뮤니티</span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} onClick={handleMySpec}>
         <span role="img" aria-label="my" style={{ color: '#3182f6' }}>👤</span>
         <span style={{ fontSize: '0.8rem', color: '#3182f6' }}>MY 스펙</span>
       </div>

@@ -27,7 +27,7 @@ export default function Header() {
   };
   const handleMySpec = () => {
     setShowMenu(false);
-    router.push('/my');
+    router.push('/myspec');
   };
   const handleSetting = () => {
     setShowMenu(false);
@@ -68,7 +68,7 @@ export default function Header() {
       boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
       borderBottom: '1px solid #b6d8ff',
     }}>
-      <div style={{ fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '1px', color: '#3182f6' }}>
+      <div style={{ fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '1px', color: '#3182f6', cursor: 'pointer' }} onClick={() => router.push('/main')}>
         SpecUp
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18, position: 'relative' }}>

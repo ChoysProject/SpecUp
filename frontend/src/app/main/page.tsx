@@ -166,6 +166,11 @@ export default function MainPage() {
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", minWidth: 80 }}
             onMouseEnter={() => setHoverIdx(idx)}
             onMouseLeave={() => setHoverIdx(null)}
+            onClick={() => {
+              if (menu.label === "나의 스펙관리") {
+                router.push("/myspec");
+              }
+            }}
           >
             <div style={{ background: "#e3f0ff", borderRadius: 16, width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 2 }}>
               {hoverIdx === idx ? (

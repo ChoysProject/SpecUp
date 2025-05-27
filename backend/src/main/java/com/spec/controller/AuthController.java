@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.spec.security.JwtTokenProvider;
+import com.spec.service.SequenceGeneratorService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,10 +25,14 @@ import com.spec.security.JwtTokenProvider;
 public class AuthController {
     
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private SequenceGeneratorService sequenceGeneratorService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -51,12 +56,13 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
-        log.info("Start Register : {}", registerRequest);
+
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             return ResponseEntity.status(409).body("ALREADY_REGISTERED");
         }
-        log.info("registerRequest: {}", registerRequest);
+        
         User user = User.builder()
+                .userId(sequenceGeneratorService.generateUserId())
                 .email(registerRequest.getEmail())
                 .name(registerRequest.getName())
                 .phone(registerRequest.getPhone())
