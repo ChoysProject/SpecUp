@@ -8,6 +8,7 @@ export default function Header() {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [userName, setUserName] = useState<string>('');
 
   const handleSearch = () => {
     // 검색창 오픈 등 실제 구현 필요
@@ -27,7 +28,7 @@ export default function Header() {
   };
   const handleMySpec = () => {
     setShowMenu(false);
-    router.push('/my');
+    router.push('/myspec');
   };
   const handleSetting = () => {
     setShowMenu(false);
@@ -51,6 +52,16 @@ export default function Header() {
     };
   }, [showMenu]);
 
+  useEffect(() => {
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    if (!userId) return;
+    fetch(`/api/users/${userId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.name) setUserName(data.name);
+      });
+  }, []);
+
   return (
     <header style={{
       position: 'fixed',
@@ -68,10 +79,11 @@ export default function Header() {
       boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
       borderBottom: '1px solid #b6d8ff',
     }}>
-      <div style={{ fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '1px', color: '#3182f6' }}>
+      <div style={{ fontWeight: 'bold', fontSize: '1.2rem', letterSpacing: '1px', color: '#3182f6', cursor: 'pointer' }} onClick={() => router.push('/main')}>
         SpecUp
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18, position: 'relative' }}>
+        <span style={{ fontWeight: 600, color: '#222', marginRight: 10 }}>{userName}</span>
         <FaSearch size={20} style={{ cursor: 'pointer' }} onClick={handleSearch} title="검색" />
         <div style={{ position: 'relative' }}>
           <FaBell size={20} style={{ cursor: 'pointer' }} onClick={handleAlarm} title="알람" />

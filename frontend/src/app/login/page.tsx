@@ -1,7 +1,7 @@
 'use client';
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -15,6 +15,12 @@ export default function LoginPage() {
   // 실제 서비스에서는 아래 URL을 각 플랫폼 OAuth URL로 변경하세요!
   const KAKAO_LOGIN_URL = "https://kauth.kakao.com/oauth/authorize?...";
   const GOOGLE_LOGIN_URL = "https://accounts.google.com/o/oauth2/v2/auth?...";
+
+  // useEffect(() => {
+  //   if (!localStorage.getItem("accessToken")) {
+  //     router.replace("/");
+  //   }
+  // }, []);
 
   // 이메일 존재 여부 확인
   const handleEmailContinue = async () => {
@@ -69,6 +75,9 @@ export default function LoginPage() {
         const data = await res.json();
         if (data.accessToken) {
           localStorage.setItem("accessToken", data.accessToken);
+        }
+        if (data.userId) {
+          localStorage.setItem("userId", data.userId);
         }
         toast.success("로그인 성공! 환영합니다.");
         setTimeout(() => router.push("/main"), 1200);

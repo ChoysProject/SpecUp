@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.spec.security.JwtTokenProvider;
+import com.spec.service.SequenceGeneratorService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,10 +25,14 @@ import com.spec.security.JwtTokenProvider;
 public class AuthController {
     
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private SequenceGeneratorService sequenceGeneratorService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
@@ -43,20 +48,22 @@ public class AuthController {
         // JWT 토큰 생성 (예시)
         String token = jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     
-        // accessToken을 JSON으로 반환
+        // accessToken과 userId를 JSON으로 반환
         Map<String, String> response = new HashMap<>();
         response.put("accessToken", token);
+        response.put("userId", user.getUserId());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
-        log.info("Start Register : {}", registerRequest);
+
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             return ResponseEntity.status(409).body("ALREADY_REGISTERED");
         }
-        log.info("registerRequest: {}", registerRequest);
+        
         User user = User.builder()
+                .userId(sequenceGeneratorService.generateUserId())
                 .email(registerRequest.getEmail())
                 .name(registerRequest.getName())
                 .phone(registerRequest.getPhone())
