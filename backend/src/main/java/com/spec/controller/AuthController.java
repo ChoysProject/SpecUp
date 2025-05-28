@@ -48,9 +48,10 @@ public class AuthController {
         // JWT 토큰 생성 (예시)
         String token = jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     
-        // accessToken을 JSON으로 반환
+        // accessToken과 userId를 JSON으로 반환
         Map<String, String> response = new HashMap<>();
         response.put("accessToken", token);
+        response.put("userId", user.getUserId());
         return ResponseEntity.ok(response);
     }
 

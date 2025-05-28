@@ -9,6 +9,13 @@ import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtTokenProvider {
@@ -27,5 +34,31 @@ public class JwtTokenProvider {
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // 여기서 15분 적용
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String resolveToken(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7);
+        }
+        return null;
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY));
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public Authentication getAuthentication(String token) {
+        Key key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY));
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        String email = claims.getSubject();
+        List<String> roles = claims.get("roles", List.class);
+        return new UsernamePasswordAuthenticationToken(email, "", roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
     }
 }

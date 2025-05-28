@@ -11,4 +11,6 @@ public class Career {
     private String period;
     private String desc;
     private List<String> detail;
+    private String startDate;
+    private String endDate;
 } 

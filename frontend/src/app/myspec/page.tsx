@@ -62,12 +62,16 @@ export default function MySpecPage() {
   const [selfIntro, setSelfIntro] = useState("");
 
   // userId 추출 (실제 서비스에서는 JWT decode 필요)
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-
-  // 마이스펙 불러오기
   useEffect(() => {
-    if (!userId) return;
-    fetch(`/api/users/${userId}`)
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!userId || !accessToken) {
+      window.location.href = '/login';
+      return;
+    }
+    fetch(`/api/users/${userId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -89,11 +93,13 @@ export default function MySpecPage() {
           setSelfIntro(data.selfIntro || "");
         }
       });
-  }, [userId]);
+  }, []);
 
   // 저장/수정 핸들러 (PUT만 사용)
   const handleSave = async () => {
-    if (!userId) {
+    const userId = localStorage.getItem('userId');
+    const accessToken = localStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
       toast.error("로그인이 필요합니다.");
       return;
     }
@@ -117,7 +123,7 @@ export default function MySpecPage() {
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
         body: JSON.stringify(userSpec),
       });
       if (res.ok) {
@@ -184,6 +190,64 @@ export default function MySpecPage() {
         </div>
       </div>
 
+      {/* 두번째 섹터: 경력, 학력, 포트폴리오 바로가기, 수상/기타 */}
+      <section style={{ marginTop: 32, display: 'flex', gap: 24, justifyContent: 'space-between' }}>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>경력</h3>
+          {career.length ? (
+            <div>{career[0].company} 외 {career.length - 1}건</div>
+          ) : (
+            <div style={{ color: "#bbb" }}>-</div>
+          )}
+        </div>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>학력</h3>
+          {education.length ? (
+            <div>{education[0].school} 외 {education.length - 1}건</div>
+          ) : (
+            <div style={{ color: "#bbb" }}>-</div>
+          )}
+        </div>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>포트폴리오</h3>
+          {portfolios.length ? (
+            <a href={portfolios[0].url} target="_blank" rel="noopener noreferrer" style={{ color: "#3182f6", textDecoration: "underline" }}>{portfolios[0].name}</a>
+          ) : (
+            <div style={{ color: "#bbb" }}>-</div>
+          )}
+        </div>
+        <div style={{ flex: 1 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>수상/기타</h3>
+          {certificates.length ? (
+            <div>{certificates[0].name} 외 {certificates.length - 1}건</div>
+          ) : (
+            <div style={{ color: "#bbb" }}>-</div>
+          )}
+        </div>
+      </section>
+
+      {/* 나의 자격증 (스킬/주특기 섹터를 자격증으로 변경) */}
+      <section style={{ marginTop: 32 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>나의 자격증</h2>
+          <button
+            style={{ ...btnStyle, marginTop: 12 }}
+            onClick={() => certificates.length ? handleEdit("자격증") : handleAdd("자격증")}
+          >
+            {certificates.length ? "수정하기" : "추가하기"}
+          </button>
+        </div>
+        {certificates.length ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {certificates.map((c: CertificateType, i: number) => (
+              <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 16, padding: "6px 16px", fontSize: 15 }}>{c.name}</span>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: "#bbb", fontSize: 16 }}>자격증 정보를 입력해주세요.</div>
+        )}
+      </section>
+
       {/* 경력 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -231,28 +295,6 @@ export default function MySpecPage() {
           ))
         ) : (
           <div style={{ color: "#bbb", fontSize: 16 }}>학력 정보를 입력해주세요.</div>
-        )}
-      </section>
-
-      {/* 스킬 */}
-      <section style={{ marginTop: 32 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>스킬/주특기</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => skills.length ? handleEdit("스킬") : handleAdd("스킬")}
-          >
-            {skills.length ? "수정하기" : "추가하기"}
-          </button>
-        </div>
-        {skills.length ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {skills.map((s: string, i: number) => (
-              <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 16, padding: "6px 16px", fontSize: 15 }}>{s}</span>
-            ))}
-          </div>
-        ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>스킬/주특기를 입력해주세요.</div>
         )}
       </section>
 

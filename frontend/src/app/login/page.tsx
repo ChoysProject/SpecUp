@@ -76,6 +76,9 @@ export default function LoginPage() {
         if (data.accessToken) {
           localStorage.setItem("accessToken", data.accessToken);
         }
+        if (data.userId) {
+          localStorage.setItem("userId", data.userId);
+        }
         toast.success("로그인 성공! 환영합니다.");
         setTimeout(() => router.push("/main"), 1200);
       } else {
