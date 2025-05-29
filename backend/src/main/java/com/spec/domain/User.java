@@ -24,6 +24,9 @@ public class User {
     private Integer age;
     private String birth;
     private String address;
+    private String homeAddress; // 집 주소
+    private String workAddress; // 직장 주소
+    private String interestAddress; // 관심지역 주소
     private List<Career> careers;
     private List<Education> educations;
     private List<String> skills;

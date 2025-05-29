@@ -11,4 +11,8 @@ public class RegisterRequest {
     private boolean agreeTerms;
     private boolean agreePrivacy;
     private boolean agreeMarketing;
+    private String birth;
+    private String homeAddress;
+    private String workAddress;
+    private String interestAddress;
 }

@@ -72,6 +72,10 @@ public class AuthController {
                 .agreeTerms(registerRequest.isAgreeTerms())
                 .agreePrivacy(registerRequest.isAgreePrivacy())
                 .agreeMarketing(registerRequest.isAgreeMarketing())
+                .birth(registerRequest.getBirth())
+                .homeAddress(registerRequest.getHomeAddress())
+                .workAddress(registerRequest.getWorkAddress())
+                .interestAddress(registerRequest.getInterestAddress())
                 .build();
         userRepository.save(user);
         log.info("회원가입 저장: {}", user);
