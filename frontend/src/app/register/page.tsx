@@ -5,6 +5,24 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// 생년월일 선택 모달 (임시)
+function BirthDateModal({ value, onClose, onSelect }: { value: string, onClose: () => void, onSelect: (date: string) => void }) {
+  // 실제 구현은 별도 파일로 분리 예정
+  // 여기서는 간단한 예시만 작성
+  return (
+    <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 300 }}>
+        <div style={{ marginBottom: 16 }}>생년월일 선택 (예시)</div>
+        <input type="date" value={value} onChange={e => onSelect(e.target.value)} style={{ width: '100%', fontSize: 16, padding: 8 }} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+          <button onClick={onClose} style={{ marginRight: 8 }}>취소</button>
+          <button onClick={() => onSelect(value)}>확인</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,9 +48,14 @@ export default function RegisterPage() {
     positionEmail: false,
     positionSms: false,
     positionPush: false,
+    birth: '',
+    homeAddress: '',
+    workAddress: '',
+    interestAddress: '',
   });
   const [loading, setLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [showBirthModal, setShowBirthModal] = useState(false);
 
   // 전체 동의 체크박스 핸들러
   const handleAllAgree = (checked: boolean) => {
@@ -102,6 +125,10 @@ export default function RegisterPage() {
           agreeTerms: form.agreeTerms,
           agreePrivacy: form.agreePrivacy,
           agreeMarketing: form.agreeMarketing,
+          birth: form.birth,
+          homeAddress: form.homeAddress,
+          workAddress: form.workAddress,
+          interestAddress: form.interestAddress,
         }),
       });
     setLoading(false);
@@ -139,6 +166,27 @@ export default function RegisterPage() {
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>이름</label>
           <input name="name" value={form.name} onChange={handleChange} placeholder="이름을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20' }} autoComplete="off" />
+        </div>
+        {/* 생년월일 */}
+        <div>
+          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>생년월일</label>
+          <input name="birth" value={form.birth} placeholder="생년월일" readOnly onClick={() => setShowBirthModal(true)} style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }} />
+        </div>
+        {showBirthModal && (
+          <BirthDateModal
+            value={form.birth}
+            onClose={() => setShowBirthModal(false)}
+            onSelect={date => {
+              setForm(prev => ({ ...prev, birth: date }));
+              setShowBirthModal(false);
+            }}
+          />
+        )}
+        {/* 지역 버튼 */}
+        <div>
+          <button type="button" onClick={() => router.push('/region')} style={{ width: '100%', background: '#f7f7f9', color: '#181A20', border: '1px solid #eee', borderRadius: 8, padding: '14px 12px', fontSize: 16, marginBottom: 0, marginTop: 4, textAlign: 'left' }}>
+            {form.homeAddress || form.workAddress || form.interestAddress ? `${form.homeAddress || ''} ${form.workAddress || ''} ${form.interestAddress || ''}`.trim() : '지역 선택'}
+          </button>
         </div>
         {/* 휴대폰 번호 */}
         <div>
