@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Picker from 'react-mobile-picker';
 
 export default function Footer() {
   const handleMySpec = () => {
     window.location.href = '/myspec';
+  };
+
+  const now = new Date();
+  const defaultYear = now.getFullYear() - 20;
+  const [birth, setBirth] = useState(`${defaultYear}-01-01`);
+  const [showBirthModal, setShowBirthModal] = useState(false);
+  const [showRegionModal, setShowRegionModal] = useState(false);
+
+  const years = Array.from({length: 100}, (_, i) => `${defaultYear - 80 + i}`);
+  const months = Array.from({length: 12}, (_, i) => `${i+1}`.padStart(2, '0'));
+  const days = Array.from({length: 31}, (_, i) => `${i+1}`.padStart(2, '0'));
+
+  const isValidPassword = (pw: string) => {
+    return (
+      pw.length >= 8 &&
+      /[A-Z]/.test(pw) &&         // 대문자 1개 이상
+      /[a-zA-Z]/.test(pw) &&      // 영문 필수
+      /[^a-zA-Z0-9]/.test(pw)     // 특수문자 1개 이상
+    );
+  };
+
+  const handleRegionSave = () => {
+    // Implementation of handleRegionSave
   };
 
   return (
@@ -36,6 +60,13 @@ export default function Footer() {
         <span role="img" aria-label="my" style={{ color: '#3182f6' }}>👤</span>
         <span style={{ fontSize: '0.8rem', color: '#3182f6' }}>MY 스펙</span>
       </div>
+      {showRegionModal && (
+        <div className="region-modal">
+          {/* 집, 직장, 관심지역 입력 폼 */}
+          <button onClick={handleRegionSave}>저장</button>
+          <button onClick={() => setShowRegionModal(false)}>취소</button>
+        </div>
+      )}
     </footer>
   );
 }
