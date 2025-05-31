@@ -22,10 +22,19 @@ export default function LoginPage() {
   //   }
   // }, []);
 
+  // 이메일 형식 체크 함수
+  const isValidEmail = (email: string) => {
+    return /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(email);
+  };
+
   // 이메일 존재 여부 확인
   const handleEmailContinue = async () => {
     if (!email) {
       toast.error("이메일을 입력해주세요.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      toast.error("올바른 이메일 형식이 아닙니다.");
       return;
     }
     try {
@@ -54,6 +63,10 @@ export default function LoginPage() {
   const handleLogin = async () => {
     if (!email || !password) {
       toast.error("이메일과 비밀번호를 모두 입력해주세요.");
+      return;
+    }
+    if (!isValidEmail(email)) {
+      toast.error("올바른 이메일 형식이 아닙니다.");
       return;
     }
     try {

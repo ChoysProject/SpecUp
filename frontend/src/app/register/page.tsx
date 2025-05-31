@@ -4,24 +4,12 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Picker from 'react-mobile-picker';
+import DaumPostcode from 'react-daum-postcode';
 
-// 생년월일 선택 모달 (임시)
-function BirthDateModal({ value, onClose, onSelect }: { value: string, onClose: () => void, onSelect: (date: string) => void }) {
-  // 실제 구현은 별도 파일로 분리 예정
-  // 여기서는 간단한 예시만 작성
-  return (
-    <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 300 }}>
-        <div style={{ marginBottom: 16 }}>생년월일 선택 (예시)</div>
-        <input type="date" value={value} onChange={e => onSelect(e.target.value)} style={{ width: '100%', fontSize: 16, padding: 8 }} />
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-          <button onClick={onClose} style={{ marginRight: 8 }}>취소</button>
-          <button onClick={() => onSelect(value)}>확인</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+type BirthType = { year: string; month: string; day: string };
+
+type PickerValue = { [key: string]: string };
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -52,10 +40,39 @@ export default function RegisterPage() {
     homeAddress: '',
     workAddress: '',
     interestAddress: '',
+    gender: '',
   });
   const [loading, setLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [showRegionModal, setShowRegionModal] = useState<false | 'home' | 'work' | 'interest'>(false);
   const [showBirthModal, setShowBirthModal] = useState(false);
+  const now = new Date();
+  const defaultYear = now.getFullYear() - 20;
+  const years = Array.from({length: 100}, (_, i) => `${defaultYear - 80 + i}`);
+  const months = Array.from({length: 12}, (_, i) => `${i+1}`.padStart(2, '0'));
+  const days = Array.from({length: 31}, (_, i) => `${i+1}`.padStart(2, '0'));
+  const options: { [key: string]: string[] } = {
+    year: years,
+    month: months,
+    day: days,
+  };
+  const [birth, setBirth] = useState<PickerValue>({
+    year: `${defaultYear}`,
+    month: '01',
+    day: '01',
+  });
+  const [tempBirth, setTempBirth] = useState<PickerValue>(birth);
+  const birthDisplay = form.birth ? form.birth : '생년월일 선택';
+  const openBirthModal = () => {
+    setTempBirth(birth);
+    setShowBirthModal(true);
+  };
+  const handleBirthConfirm = () => {
+    setBirth(tempBirth);
+    const birthStr = `${tempBirth.year}-${tempBirth.month}-${tempBirth.day}`;
+    setForm(prev => ({ ...prev, birth: birthStr }));
+    setShowBirthModal(false);
+  };
 
   // 전체 동의 체크박스 핸들러
   const handleAllAgree = (checked: boolean) => {
@@ -162,101 +179,184 @@ export default function RegisterPage() {
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>이메일</label>
           <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="이메일을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', marginBottom: 0 }} autoComplete="off" readOnly={!!emailParam} />
         </div>
-        {/* 이름 */}
+        {/* 이름 or 닉네임 */}
         <div>
-          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>이름</label>
-          <input name="name" value={form.name} onChange={handleChange} placeholder="이름을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20' }} autoComplete="off" />
+          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>이름 or 닉네임</label>
+          <input name="name" value={form.name} onChange={handleChange} placeholder="이름 또는 닉네임을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20' }} autoComplete="off" />
         </div>
-        {/* 생년월일 */}
-        <div>
-          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>생년월일</label>
-          <input name="birth" value={form.birth} placeholder="생년월일" readOnly onClick={() => setShowBirthModal(true)} style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }} />
-        </div>
-        {showBirthModal && (
-          <BirthDateModal
-            value={form.birth}
-            onClose={() => setShowBirthModal(false)}
-            onSelect={date => {
-              setForm(prev => ({ ...prev, birth: date }));
-              setShowBirthModal(false);
-            }}
-          />
-        )}
-        {/* 지역 버튼 */}
-        <div>
-          <button type="button" onClick={() => router.push('/region')} style={{ width: '100%', background: '#f7f7f9', color: '#181A20', border: '1px solid #eee', borderRadius: 8, padding: '14px 12px', fontSize: 16, marginBottom: 0, marginTop: 4, textAlign: 'left' }}>
-            {form.homeAddress || form.workAddress || form.interestAddress ? `${form.homeAddress || ''} ${form.workAddress || ''} ${form.interestAddress || ''}`.trim() : '지역 선택'}
-          </button>
-        </div>
-        {/* 휴대폰 번호 */}
-        <div>
-          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>휴대폰 번호</label>
-          {/* 국가 선택 */}
-          <select style={{ background: '#f7f7f9', color: '#181A20', border: '1px solid #eee', borderRadius: 8, padding: '12px 8px', fontSize: 15, width: '100%', marginBottom: 8 }} disabled>
-            <option>Republic of Korea (대한민국) +82</option>
-          </select>
-          {/* 전화번호 + 인증번호 받기 버튼 */}
-          <div style={{ display: 'flex', gap: 8 }}>
+        {/* 생년월일+성별 한 줄 UI: 라벨 한 줄, input+토글 한 줄(이전 구조) */}
+        <div style={{ width: '100%', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 6 }}>
+            <label style={{ fontSize: 14, color: '#888', width: 60, minWidth: 60, textAlign: 'left', whiteSpace: 'nowrap' }}>생년월일</label>
+            <label style={{ fontSize: 14, color: '#888', width: 40, minWidth: 40, textAlign: 'left', whiteSpace: 'nowrap' }}>성별</label>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="(예시) 01013245768"
+              name="birth"
+              type="date"
+              value={form.birth}
+              placeholder="생년월일 선택"
+              onChange={e => setForm(prev => ({ ...prev, birth: e.target.value }))}
               style={{
                 flex: 1,
-                padding: '0 12px',
+                height: 44,
+                padding: '0 16px',
                 fontSize: 16,
-                borderRadius: 8,
-                border: '1px solid #eee',
-                background: '#f7f7f9',
-                color: '#181A20',
-                height: 40
-              }}
-              autoComplete="off"
-            />
-            <button
-              type="button"
-              style={{
-                background: '#fff',
-                color: '#3182f6',
-                border: '1px solid #3182f6',
-                borderRadius: 8,
-                padding: '0 10px',
-                fontSize: 15,
-                height: 40,
-                minWidth: 80,
+                borderRadius: 12,
+                border: 'none',
+                background: '#f5f5f7',
+                color: form.birth ? '#181A20' : '#bbb',
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                textAlign: 'center',
+                boxSizing: 'border-box',
+                outline: 'none',
+                fontWeight: 500,
               }}
-              onClick={handleSendVerification}
-              disabled={verificationSent}
-            >
-              인증번호 받기
-            </button>
+            />
+            <div style={{ display: 'flex', background: '#eee', borderRadius: 16, overflow: 'hidden', height: 44, minWidth: 120 }}>
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, gender: 'male' }))}
+                style={{
+                  background: form.gender === 'male' ? '#fff' : '#eee',
+                  color: form.gender === 'male' ? '#181A20' : '#bbb',
+                  border: 'none',
+                  outline: 'none',
+                  width: 60,
+                  height: 44,
+                  fontWeight: 600,
+                  fontSize: 16,
+                  borderRadius: form.gender === 'male' ? '16px 0 0 16px' : '16px 0 0 16px',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >남</button>
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, gender: 'female' }))}
+                style={{
+                  background: form.gender === 'female' ? '#fff' : '#eee',
+                  color: form.gender === 'female' ? '#181A20' : '#bbb',
+                  border: 'none',
+                  outline: 'none',
+                  width: 60,
+                  height: 44,
+                  fontWeight: 600,
+                  fontSize: 16,
+                  borderRadius: form.gender === 'female' ? '0 16px 16px 0' : '0 16px 16px 0',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                }}
+              >여</button>
+            </div>
           </div>
-          {/* 인증번호 입력 */}
-          <input
-            name="verificationCode"
-            value={form.verificationCode}
-            onChange={handleChange}
-            placeholder="인증번호를 입력해주세요."
-            style={{
-              width: '100%',
-              marginTop: 8,
-              padding: '0 12px',
-              fontSize: 16,
-              borderRadius: 8,
-              border: '1px solid #eee',
-              background: verificationSent ? '#f7f7f9' : '#f7f7f9',
-              color: verificationSent ? '#181A20' : '#bbb',
-              height: 38
-            }}
-            disabled={!verificationSent}
-            autoComplete="off"
-          />
         </div>
+        {/* 집 주소 */}
+        <div>
+          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>집</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              name="homeAddress"
+              value={form.homeAddress}
+              placeholder="집 주소를 입력 또는 선택해주세요."
+              readOnly
+              style={{ flex: 1, padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
+              onClick={() => setShowRegionModal('home')}
+            />
+          </div>
+        </div>
+        {/* 직장 주소 */}
+        <div>
+          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>직장</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              name="workAddress"
+              value={form.workAddress}
+              placeholder="직장 주소를 입력 또는 선택해주세요."
+              readOnly
+              style={{ flex: 1, padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
+              onClick={() => setShowRegionModal('work')}
+            />
+          </div>
+        </div>
+        {/* 관심지역 주소 */}
+        <div>
+          <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>관심지역</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              name="interestAddress"
+              value={form.interestAddress}
+              placeholder="관심지역 주소를 입력 또는 선택해주세요."
+              readOnly
+              style={{ flex: 1, padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
+              onClick={() => setShowRegionModal('interest')}
+            />
+          </div>
+        </div>
+        {/* 주소 자동완성 모달 */}
+        {showRegionModal && (
+          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
+              <div style={{ marginBottom: 16, fontWeight: 600 }}>주소 검색</div>
+              <DaumPostcode
+                onComplete={data => {
+                  if (showRegionModal === 'home') setForm(prev => ({ ...prev, homeAddress: data.address }));
+                  if (showRegionModal === 'work') setForm(prev => ({ ...prev, workAddress: data.address }));
+                  if (showRegionModal === 'interest') setForm(prev => ({ ...prev, interestAddress: data.address }));
+                  setShowRegionModal(false);
+                }}
+                style={{ width: '100%', height: 400 }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                <button onClick={() => setShowRegionModal(false)}>닫기</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* 생년월일 모달 Picker가 항상 보이도록 minHeight, zIndex, 폰트 등 스타일 보강 */}
+        {showBirthModal && (
+          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+            <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320, minHeight: 260, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ marginBottom: 16, fontWeight: 600, textAlign: 'center', fontSize: 18 }}>생년월일 선택</div>
+              <div style={{ margin: '0 auto', width: 260, minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Picker
+                  value={tempBirth}
+                  onChange={setTempBirth}
+                  data={{ year: years, month: months, day: days } as any}
+                  height={180}
+                  itemHeight={36}
+                />
+              </div>
+              <style>{`
+                .react-mobile-picker-container {
+                  font-size: 20px;
+                  display: flex;
+                  gap: 32px;
+                }
+                .react-mobile-picker-col {
+                  min-width: 70px;
+                }
+                .react-mobile-picker-item {
+                  color: #bbb;
+                  font-weight: 400;
+                }
+                .react-mobile-picker-selected {
+                  color: #181A20;
+                  font-weight: 600;
+                  font-size: 22px;
+                }
+                .react-mobile-picker-indicator {
+                  border-top: 1.5px solid #bbb;
+                  border-bottom: 1.5px solid #bbb;
+                }
+              `}</style>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, gap: 12 }}>
+                <button onClick={() => setShowBirthModal(false)} style={{ color: '#3182f6', background: 'none', border: 'none', fontSize: 16, padding: '8px 16px', cursor: 'pointer' }}>취소</button>
+                <button onClick={handleBirthConfirm} style={{ color: '#3182f6', background: 'none', border: 'none', fontSize: 16, padding: '8px 16px', cursor: 'pointer', fontWeight: 600 }}>확인</button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* 비밀번호 */}
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>비밀번호</label>
