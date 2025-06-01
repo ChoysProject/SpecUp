@@ -4,12 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Picker from 'react-mobile-picker';
 import DaumPostcode from 'react-daum-postcode';
-
-type BirthType = { year: string; month: string; day: string };
-
-type PickerValue = { [key: string]: string };
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,12 +51,12 @@ export default function RegisterPage() {
     month: months,
     day: days,
   };
-  const [birth, setBirth] = useState<PickerValue>({
+  const [birth, setBirth] = useState<{ [key: string]: string }>({
     year: `${defaultYear}`,
     month: '01',
     day: '01',
   });
-  const [tempBirth, setTempBirth] = useState<PickerValue>(birth);
+  const [tempBirth, setTempBirth] = useState<{ [key: string]: string }>(birth);
   const birthDisplay = form.birth ? form.birth : '생년월일 선택';
   const openBirthModal = () => {
     setTempBirth(birth);
@@ -157,6 +152,12 @@ export default function RegisterPage() {
     }
   };
 
+  // 주소 선택 시 '구 동'만 추출하는 함수
+  const extractGuDong = (address: string) => {
+    const match = address.match(/([가-힣]+구 [가-힣0-9]+(동|읍|면))/);
+    return match ? match[0] : address;
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -184,11 +185,10 @@ export default function RegisterPage() {
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>이름 or 닉네임</label>
           <input name="name" value={form.name} onChange={handleChange} placeholder="이름 또는 닉네임을 입력해주세요." style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20' }} autoComplete="off" />
         </div>
-        {/* 생년월일+성별 한 줄 UI: 라벨 한 줄, input+토글 한 줄(이전 구조) */}
+        {/* 생년월일+성별 한 줄 UI */}
         <div style={{ width: '100%', marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 6 }}>
             <label style={{ fontSize: 14, color: '#888', width: 60, minWidth: 60, textAlign: 'left', whiteSpace: 'nowrap' }}>생년월일</label>
-            <label style={{ fontSize: 14, color: '#888', width: 40, minWidth: 40, textAlign: 'left', whiteSpace: 'nowrap' }}>성별</label>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <input
@@ -254,109 +254,90 @@ export default function RegisterPage() {
         {/* 집 주소 */}
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>집</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              name="homeAddress"
-              value={form.homeAddress}
-              placeholder="집 주소를 입력 또는 선택해주세요."
-              readOnly
-              style={{ flex: 1, padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
-              onClick={() => setShowRegionModal('home')}
-            />
-          </div>
+          <input
+            name="homeAddress"
+            value={form.homeAddress}
+            placeholder="집 주소를 선택하세요"
+            readOnly
+            style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
+            onClick={() => setShowRegionModal('home')}
+          />
+          {showRegionModal === 'home' && (
+            <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
+                <DaumPostcode
+                  onComplete={data => {
+                    const guDong = extractGuDong(data.address);
+                    setForm(prev => ({ ...prev, homeAddress: guDong }));
+                    setShowRegionModal(false);
+                  }}
+                  style={{ width: '100%', height: 400 }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                  <button onClick={() => setShowRegionModal(false)}>닫기</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         {/* 직장 주소 */}
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>직장</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              name="workAddress"
-              value={form.workAddress}
-              placeholder="직장 주소를 입력 또는 선택해주세요."
-              readOnly
-              style={{ flex: 1, padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
-              onClick={() => setShowRegionModal('work')}
-            />
-          </div>
+          <input
+            name="workAddress"
+            value={form.workAddress}
+            placeholder="직장 주소를 선택하세요"
+            readOnly
+            style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
+            onClick={() => setShowRegionModal('work')}
+          />
+          {showRegionModal === 'work' && (
+            <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
+                <DaumPostcode
+                  onComplete={data => {
+                    const guDong = extractGuDong(data.address);
+                    setForm(prev => ({ ...prev, workAddress: guDong }));
+                    setShowRegionModal(false);
+                  }}
+                  style={{ width: '100%', height: 400 }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                  <button onClick={() => setShowRegionModal(false)}>닫기</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         {/* 관심지역 주소 */}
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>관심지역</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              name="interestAddress"
-              value={form.interestAddress}
-              placeholder="관심지역 주소를 입력 또는 선택해주세요."
-              readOnly
-              style={{ flex: 1, padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
-              onClick={() => setShowRegionModal('interest')}
-            />
-          </div>
-        </div>
-        {/* 주소 자동완성 모달 */}
-        {showRegionModal && (
-          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
-              <div style={{ marginBottom: 16, fontWeight: 600 }}>주소 검색</div>
-              <DaumPostcode
-                onComplete={data => {
-                  if (showRegionModal === 'home') setForm(prev => ({ ...prev, homeAddress: data.address }));
-                  if (showRegionModal === 'work') setForm(prev => ({ ...prev, workAddress: data.address }));
-                  if (showRegionModal === 'interest') setForm(prev => ({ ...prev, interestAddress: data.address }));
-                  setShowRegionModal(false);
-                }}
-                style={{ width: '100%', height: 400 }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-                <button onClick={() => setShowRegionModal(false)}>닫기</button>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 생년월일 모달 Picker가 항상 보이도록 minHeight, zIndex, 폰트 등 스타일 보강 */}
-        {showBirthModal && (
-          <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-            <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320, minHeight: 260, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ marginBottom: 16, fontWeight: 600, textAlign: 'center', fontSize: 18 }}>생년월일 선택</div>
-              <div style={{ margin: '0 auto', width: 260, minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Picker
-                  value={tempBirth}
-                  onChange={setTempBirth}
-                  data={{ year: years, month: months, day: days } as any}
-                  height={180}
-                  itemHeight={36}
+          <input
+            name="interestAddress"
+            value={form.interestAddress}
+            placeholder="관심지역 주소를 선택하세요"
+            readOnly
+            style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
+            onClick={() => setShowRegionModal('interest')}
+          />
+          {showRegionModal === 'interest' && (
+            <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+              <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
+                <DaumPostcode
+                  onComplete={data => {
+                    const guDong = extractGuDong(data.address);
+                    setForm(prev => ({ ...prev, interestAddress: guDong }));
+                    setShowRegionModal(false);
+                  }}
+                  style={{ width: '100%', height: 400 }}
                 />
-              </div>
-              <style>{`
-                .react-mobile-picker-container {
-                  font-size: 20px;
-                  display: flex;
-                  gap: 32px;
-                }
-                .react-mobile-picker-col {
-                  min-width: 70px;
-                }
-                .react-mobile-picker-item {
-                  color: #bbb;
-                  font-weight: 400;
-                }
-                .react-mobile-picker-selected {
-                  color: #181A20;
-                  font-weight: 600;
-                  font-size: 22px;
-                }
-                .react-mobile-picker-indicator {
-                  border-top: 1.5px solid #bbb;
-                  border-bottom: 1.5px solid #bbb;
-                }
-              `}</style>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16, gap: 12 }}>
-                <button onClick={() => setShowBirthModal(false)} style={{ color: '#3182f6', background: 'none', border: 'none', fontSize: 16, padding: '8px 16px', cursor: 'pointer' }}>취소</button>
-                <button onClick={handleBirthConfirm} style={{ color: '#3182f6', background: 'none', border: 'none', fontSize: 16, padding: '8px 16px', cursor: 'pointer', fontWeight: 600 }}>확인</button>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                  <button onClick={() => setShowRegionModal(false)}>닫기</button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
         {/* 비밀번호 */}
         <div>
           <label style={{ fontSize: 14, color: '#888', marginBottom: 6, display: 'block' }}>비밀번호</label>
