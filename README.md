@@ -1,5 +1,5 @@
 # SpecUp
-자격증 및 스터디 모임 관리시스템
+스터디 모임 지원 및 자격증 정보 제공 시스템 
 
 Backend : JAVA, SpringBoot
 Frontend : NEXT.js, React, Typescript
