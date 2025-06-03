@@ -99,20 +99,20 @@ export default function RegisterPage() {
     }));
   };
 
-  // 인증번호 받기 버튼 클릭
-  const handleSendVerification = () => {
-    if (!form.phone) {
-      toast.error('휴대폰 번호를 입력해주세요.');
-      return;
-    }
-    setVerificationSent(true);
-    toast.success('인증번호가 발송되었습니다. (실제 구현 필요)');
-  };
+  // // 인증번호 받기 버튼 클릭
+  // const handleSendVerification = () => {
+  //   if (!form.phone) {
+  //     toast.error('휴대폰 번호를 입력해주세요.');
+  //     return;
+  //   }
+  //   setVerificationSent(true);
+  //   toast.success('인증번호가 발송되었습니다. (실제 구현 필요)');
+  // };
 
   // 회원가입 처리
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.email || !form.name || !form.phone || !form.password || !form.passwordConfirm) {
+    if (!form.email || !form.name || !form.password || !form.passwordConfirm) {
       toast.error('모든 필수 정보를 입력해주세요.');
       return;
     }
