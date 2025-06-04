@@ -173,6 +173,11 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요"
+                onKeyDown={e => {
+                  if (e.key === "Enter") {
+                    handleLogin();
+                  }
+                }}
                 style={{
                   width: "100%",
                   padding: "14px 12px",
