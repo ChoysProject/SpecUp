@@ -92,8 +92,33 @@ export default function LoginPage() {
         if (data.userId) {
           localStorage.setItem("userId", data.userId);
         }
-        toast.success("로그인 성공! 환영합니다.");
-        setTimeout(() => router.push("/main"), 1200);
+        // 로그인 후 유저 정보 조회하여 jobInterests 체크
+        try {
+          const userRes = await fetch(`/api/users/${data.userId}`, {
+            headers: { Authorization: `Bearer ${data.accessToken}` }
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            const jobInterests = userData.jobInterests ?? [];
+            const certInterests = userData.certInterests ?? [];
+            if (!Array.isArray(jobInterests) || jobInterests.length === 0) {
+              toast.info("관심 직무/업종을 먼저 선택해주세요.");
+              setTimeout(() => router.push("/select-interest"), 1200);
+            } else if (!Array.isArray(certInterests) || certInterests.length === 0) {
+              toast.info("관심 자격증을 먼저 선택해주세요.");
+              setTimeout(() => router.push("/select-cert"), 1200);
+            } else {
+              toast.success("로그인 성공! 환영합니다.");
+              setTimeout(() => router.push("/main"), 1200);
+            }
+          } else {
+            toast.success("로그인 성공! 환영합니다.");
+            setTimeout(() => router.push("/main"), 1200);
+          }
+        } catch {
+          toast.success("로그인 성공! 환영합니다.");
+          setTimeout(() => router.push("/main"), 1200);
+        }
       } else {
         toast.error("로그인 중 오류가 발생했습니다.");
       }
