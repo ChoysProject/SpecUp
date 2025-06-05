@@ -76,6 +76,8 @@ public class AuthController {
                 .homeAddress(registerRequest.getHomeAddress())
                 .workAddress(registerRequest.getWorkAddress())
                 .interestAddress(registerRequest.getInterestAddress())
+                .jobInterests(new java.util.ArrayList<>())
+                .certInterests(new java.util.ArrayList<>())
                 .build();
         userRepository.save(user);
         log.info("회원가입 저장: {}", user);
