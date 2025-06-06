@@ -109,7 +109,7 @@ export default function Header() {
               padding: '6px 0',
               fontSize: 14,
             }}>
-              <div style={{ padding: '8px 18px', cursor: 'pointer', color: '#3182f6', fontWeight: 500 }} onClick={handleMySpec}>MY 스펙</div>
+              <div style={{ padding: '8px 18px', cursor: 'pointer', color: '#3182f6', fontWeight: 500 }} onClick={handleMySpec}>내 프로필</div>
               <div style={{ padding: '8px 18px', cursor: 'pointer', color: '#3182f6', fontWeight: 500 }} onClick={handleSetting}>설정</div>
               <div style={{ padding: '8px 18px', cursor: 'pointer', color: '#ff4d4f', fontWeight: 500 }} onClick={handleLogout}>로그아웃</div>
             </div>

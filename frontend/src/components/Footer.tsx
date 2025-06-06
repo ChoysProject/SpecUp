@@ -58,7 +58,7 @@ export default function Footer() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }} onClick={handleMySpec}>
         <span role="img" aria-label="my" style={{ color: '#3182f6' }}>👤</span>
-        <span style={{ fontSize: '0.8rem', color: '#3182f6' }}>MY 스펙</span>
+        <span style={{ fontSize: '0.8rem', color: '#3182f6' }}>프로필</span>
       </div>
       {showRegionModal && (
         <div className="region-modal">
