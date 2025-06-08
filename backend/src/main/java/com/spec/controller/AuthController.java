@@ -74,11 +74,8 @@ public class AuthController {
                 .agreeMarketing(registerRequest.isAgreeMarketing())
                 .birth(registerRequest.getBirth())
                 .homeAddress(registerRequest.getHomeAddress())
-                .homeAddressCity(registerRequest.getHomeAddressCity())
                 .workAddress(registerRequest.getWorkAddress())
-                .workAddressCity(registerRequest.getWorkAddressCity())
                 .interestAddress(registerRequest.getInterestAddress())
-                .interestAddressCity(registerRequest.getInterestAddressCity())
                 .jobInterests(new java.util.ArrayList<>())
                 .certInterests(new java.util.ArrayList<>())
                 .build();

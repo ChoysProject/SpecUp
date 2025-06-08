@@ -33,11 +33,8 @@ export default function RegisterPage() {
     positionPush: false,
     birth: '',
     homeAddress: '',
-    homeAddressCity: '',
     workAddress: '',
-    workAddressCity: '',
     interestAddress: '',
-    interestAddressCity: '',
     gender: '',
   });
   const [loading, setLoading] = useState(false);
@@ -142,11 +139,8 @@ export default function RegisterPage() {
           agreeMarketing: form.agreeMarketing,
           birth: form.birth,
           homeAddress: form.homeAddress,
-          homeAddressCity: form.homeAddressCity,
           workAddress: form.workAddress,
-          workAddressCity: form.workAddressCity,
           interestAddress: form.interestAddress,
-          interestAddressCity: form.interestAddressCity,
         }),
       });
     setLoading(false);
@@ -200,8 +194,7 @@ export default function RegisterPage() {
     if (showDongModal) {
       setForm(prev => ({
         ...prev,
-        [`${showDongModal}Address`]: dong.name,
-        [`${showDongModal}AddressCity`]: dong.city || '',
+        [`${showDongModal}Address`]: `${dong.city ? dong.city + ' ' : ''}${dong.name}`,
       }));
       setShowDongModal(false);
       setDongKeyword('');

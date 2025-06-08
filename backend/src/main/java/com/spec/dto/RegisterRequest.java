@@ -15,7 +15,4 @@ public class RegisterRequest {
     private String homeAddress;
     private String workAddress;
     private String interestAddress;
-    private String homeAddressCity;
-    private String workAddressCity;
-    private String interestAddressCity;
 }
