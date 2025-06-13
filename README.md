@@ -6,3 +6,9 @@ Frontend : NEXT.js, React, Typescript
 Server : AWS EC2, nginx
 DB : AWS RDS, MongoDB
 Build tool : Maven
+
+------------------------------
+
+명령어 정리
+npm run dev
+mvn spring-boot:run
