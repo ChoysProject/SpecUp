@@ -78,6 +78,7 @@ public class AuthController {
                 .interestAddress(registerRequest.getInterestAddress())
                 .jobInterests(new java.util.ArrayList<>())
                 .certInterests(new java.util.ArrayList<>())
+                .roles(java.util.Arrays.asList("ROLE_USER"))
                 .build();
         userRepository.save(user);
         log.info("회원가입 저장: {}", user.toString());
