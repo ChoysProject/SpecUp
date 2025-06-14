@@ -85,8 +85,8 @@ public class UserController {
                 resp.put("boxEducations", boxEducations);
                 resp.put("boxPortfolios", boxPortfolios);
                 resp.put("boxCertificates", boxCertificates);
-                resp.put("jobInterests", user.getJobInterests());
-                resp.put("certInterests", user.getCertInterests());
+                resp.put("jobInterests", user.getJobInterests() != null ? user.getJobInterests() : new java.util.ArrayList<>());
+                resp.put("certInterests", user.getCertInterests() != null ? user.getCertInterests() : new java.util.ArrayList<>());
                 return ResponseEntity.ok(resp);
             })
             .orElse(ResponseEntity.notFound().build());

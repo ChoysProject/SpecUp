@@ -81,7 +81,7 @@ public class AuthController {
                 .roles(java.util.Arrays.asList("ROLE_USER"))
                 .build();
         userRepository.save(user);
-        log.info("회원가입 저장: {}", user);
+        log.info("회원가입 저장: {}", user.toString());
         return ResponseEntity.ok("REGISTERED");
     }
 }

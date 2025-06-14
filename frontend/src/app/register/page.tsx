@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -158,6 +158,55 @@ export default function RegisterPage() {
     return match ? match[0] : address;
   };
 
+  // 모달 상태 및 동 자동완성 상태 추가
+  const [showDongModal, setShowDongModal] = useState<false | 'home' | 'work' | 'interest'>(false);
+  const [dongKeyword, setDongKeyword] = useState('');
+  const [dongList, setDongList] = useState<any[]>([]);
+
+  // 모달 내 동 입력 핸들러
+  const handleDongInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDongKeyword(value);
+    if (value.length > 1) {
+      try {
+        const res = await fetch(`http://localhost:8080/api/dong?keyword=${encodeURIComponent(value)}`);
+        if (!res.ok) {
+          setDongList([]);
+          return;
+        }
+        const text = await res.text();
+        if (!text) {
+          setDongList([]);
+          return;
+        }
+        const data = JSON.parse(text);
+        setDongList(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setDongList([]);
+      }
+    } else {
+      setDongList([]);
+    }
+  };
+
+  // 동 선택 시
+  const handleDongSelect = (dong: any) => {
+    if (showDongModal) {
+      setForm(prev => ({
+        ...prev,
+        [`${showDongModal}Address`]: `${dong.city ? dong.city + ' ' : ''}${dong.name}`,
+      }));
+      setShowDongModal(false);
+      setDongKeyword('');
+      setDongList([]);
+    }
+  };
+
+  // 생년월일 기본값을 1995-05-05로 세팅
+  useEffect(() => {
+    setForm(prev => ({ ...prev, birth: '1995-05-05' }));
+  }, []);
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -259,26 +308,9 @@ export default function RegisterPage() {
             value={form.homeAddress}
             placeholder="집 주소를 선택하세요"
             readOnly
+            onClick={() => setShowDongModal('home')}
             style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
-            onClick={() => setShowRegionModal('home')}
           />
-          {showRegionModal === 'home' && (
-            <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-              <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
-                <DaumPostcode
-                  onComplete={data => {
-                    const guDong = extractGuDong(data.address);
-                    setForm(prev => ({ ...prev, homeAddress: guDong }));
-                    setShowRegionModal(false);
-                  }}
-                  style={{ width: '100%', height: 400 }}
-                />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-                  <button onClick={() => setShowRegionModal(false)}>닫기</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         {/* 직장 주소 */}
         <div>
@@ -288,26 +320,9 @@ export default function RegisterPage() {
             value={form.workAddress}
             placeholder="직장 주소를 선택하세요"
             readOnly
+            onClick={() => setShowDongModal('work')}
             style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
-            onClick={() => setShowRegionModal('work')}
           />
-          {showRegionModal === 'work' && (
-            <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-              <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
-                <DaumPostcode
-                  onComplete={data => {
-                    const guDong = extractGuDong(data.address);
-                    setForm(prev => ({ ...prev, workAddress: guDong }));
-                    setShowRegionModal(false);
-                  }}
-                  style={{ width: '100%', height: 400 }}
-                />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-                  <button onClick={() => setShowRegionModal(false)}>닫기</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         {/* 관심지역 주소 */}
         <div>
@@ -317,26 +332,9 @@ export default function RegisterPage() {
             value={form.interestAddress}
             placeholder="관심지역 주소를 선택하세요"
             readOnly
+            onClick={() => setShowDongModal('interest')}
             style={{ width: '100%', padding: '14px 12px', fontSize: 16, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', color: '#181A20', cursor: 'pointer' }}
-            onClick={() => setShowRegionModal('interest')}
           />
-          {showRegionModal === 'interest' && (
-            <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-              <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
-                <DaumPostcode
-                  onComplete={data => {
-                    const guDong = extractGuDong(data.address);
-                    setForm(prev => ({ ...prev, interestAddress: guDong }));
-                    setShowRegionModal(false);
-                  }}
-                  style={{ width: '100%', height: 400 }}
-                />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
-                  <button onClick={() => setShowRegionModal(false)}>닫기</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         {/* 비밀번호 */}
         <div>
@@ -374,6 +372,38 @@ export default function RegisterPage() {
           가입하기
         </button>
       </form>
+      {/* 동 자동완성 모달 */}
+      {showDongModal && (
+        <div style={{ position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: 24, minWidth: 320 }}>
+            <input
+              value={dongKeyword}
+              onChange={handleDongInput}
+              placeholder="동명을 입력하세요"
+              style={{ width: '100%', padding: 12, fontSize: 16, borderRadius: 8, border: '1px solid #eee', marginBottom: 8 }}
+            />
+            <ul style={{ maxHeight: 200, overflowY: 'auto', margin: 0, padding: 0 }}>
+              {dongList.map((dong, idx) => (
+                <li
+                  key={dong.code || idx}
+                  onClick={() => handleDongSelect(dong)}
+                  style={{ padding: 12, cursor: 'pointer', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}
+                >
+                  <span style={{ fontWeight: 600 }}>{dong.name}</span>
+                  {dong.city && (
+                    <span style={{ color: '#888', fontSize: 13, marginLeft: 8 }}>
+                      ({dong.city})
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <button onClick={() => setShowDongModal(false)}>닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

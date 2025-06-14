@@ -27,6 +27,9 @@ public class User {
     private String homeAddress; // 집 주소
     private String workAddress; // 직장 주소
     private String interestAddress; // 관심지역 주소
+    private String homeAddressCity; // 집 시/군/구
+    private String workAddressCity; // 직장 시/군/구
+    private String interestAddressCity; // 관심지역 시/군/구
     private List<Career> careers;
     private List<Education> educations;
     private List<String> skills;
