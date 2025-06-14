@@ -94,32 +94,43 @@ export default function LoginPage() {
         }
         // 로그인 후 유저 정보 조회하여 jobInterests 체크
         try {
-          const userRes = await fetch(`/api/users/${data.userId}`, {
-            headers: { Authorization: `Bearer ${data.accessToken}` }
+          const userRes = await fetch(`http://localhost:8080/api/users/${data.userId}`, {
+            headers: { 
+              "Authorization": `Bearer ${data.accessToken}`,
+              "Content-Type": "application/json"
+            }
           });
+          
           if (userRes.ok) {
             const userData = await userRes.json();
             const jobInterests = userData.jobInterests ?? [];
             const certInterests = userData.certInterests ?? [];
+            
             if (!Array.isArray(jobInterests) || jobInterests.length === 0) {
               toast.info("관심 직무/업종을 먼저 선택해주세요.");
               setTimeout(() => router.push("/select-interest"), 1200);
-            } else if (!Array.isArray(certInterests) || certInterests.length === 0) {
+              return;
+            }
+            
+            if (!Array.isArray(certInterests) || certInterests.length === 0) {
               toast.info("관심 자격증을 먼저 선택해주세요.");
               setTimeout(() => router.push("/select-cert"), 1200);
-            } else {
-              toast.success("로그인 성공! 환영합니다.");
-              setTimeout(() => router.push("/main"), 1200);
+              return;
             }
-          } else {
+            
             toast.success("로그인 성공! 환영합니다.");
             setTimeout(() => router.push("/main"), 1200);
+          } else {
+            console.error("사용자 정보 조회 실패:", await userRes.text());
+            toast.error("사용자 정보를 가져오는데 실패했습니다.");
           }
-        } catch {
-          toast.success("로그인 성공! 환영합니다.");
-          setTimeout(() => router.push("/main"), 1200);
+        } catch (error) {
+          console.error("사용자 정보 조회 중 에러:", error);
+          toast.error("사용자 정보를 가져오는데 실패했습니다.");
         }
       } else {
+        const errorText = await res.text();
+        console.error("로그인 실패:", errorText);
         toast.error("로그인 중 오류가 발생했습니다.");
       }
     } catch (e) {

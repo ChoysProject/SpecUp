@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -97,8 +98,29 @@ public class UserController {
             .map(existing -> {
                 user.setId(existing.getId());
                 user.setUserId(userId);
+                // roles가 null이면 기본 role 추가
+                if (user.getRoles() == null) {
+                    user.setRoles(java.util.Arrays.asList("ROLE_USER"));
+                }
                 return ResponseEntity.ok(userRepository.save(user));
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 기존 사용자들의 roles 필드를 업데이트하는 엔드포인트
+    @PostMapping("/update-roles")
+    public ResponseEntity<?> updateAllUsersRoles() {
+        try {
+            List<User> users = userRepository.findAll();
+            for (User user : users) {
+                if (user.getRoles() == null) {
+                    user.setRoles(java.util.Arrays.asList("ROLE_USER"));
+                    userRepository.save(user);
+                }
+            }
+            return ResponseEntity.ok("모든 사용자의 roles가 업데이트되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("roles 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 } 

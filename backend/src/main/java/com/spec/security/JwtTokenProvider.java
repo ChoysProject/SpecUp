@@ -59,6 +59,9 @@ public class JwtTokenProvider {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         String email = claims.getSubject();
         List<String> roles = claims.get("roles", List.class);
+        if (roles == null) {
+            roles = java.util.Arrays.asList("ROLE_USER");
+        }
         return new UsernamePasswordAuthenticationToken(email, "", roles.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
     }
 }
