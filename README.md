@@ -10,5 +10,9 @@ Build tool : Maven
 ------------------------------
 
 명령어 정리
+<frontend>
 npm run dev
+<backend>
 mvn spring-boot:run
+
+------------------------------
