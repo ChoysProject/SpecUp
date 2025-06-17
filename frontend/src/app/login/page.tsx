@@ -38,7 +38,7 @@ export default function LoginPage() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
+      const res = await fetch("http://192.168.6.131:8080/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password: "dummy" }), // password는 더미
@@ -70,7 +70,7 @@ export default function LoginPage() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
+      const res = await fetch("http://192.168.6.131:8080/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -94,7 +94,7 @@ export default function LoginPage() {
         }
         // 로그인 후 유저 정보 조회하여 jobInterests 체크
         try {
-          const userRes = await fetch(`http://localhost:8080/api/users/${data.userId}`, {
+          const userRes = await fetch(`http://192.168.6.131:8080/api/users/${data.userId}`, {
             headers: { 
               "Authorization": `Bearer ${data.accessToken}`,
               "Content-Type": "application/json"
@@ -121,8 +121,9 @@ export default function LoginPage() {
             toast.success("로그인 성공! 환영합니다.");
             setTimeout(() => router.push("/main"), 1200);
           } else {
-            console.error("사용자 정보 조회 실패:", await userRes.text());
-            toast.error("사용자 정보를 가져오는데 실패했습니다.");
+            const errorText = await userRes.text();
+            console.error("사용자 정보 조회 실패:", errorText);
+            toast.error("사용자 정보를 가져오는데 실패했습니다. 다시 시도해주세요.");
           }
         } catch (error) {
           console.error("사용자 정보 조회 중 에러:", error);
