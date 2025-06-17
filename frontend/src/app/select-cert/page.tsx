@@ -32,7 +32,7 @@ export default function SelectCertPage() {
       return;
     }
     try {
-      const res = await fetch(`/api/users/${userId}`, {
+      const res = await fetch(`http://192.168.6.131:8080/api/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({ certInterests: selected })
@@ -40,10 +40,13 @@ export default function SelectCertPage() {
       if (res.ok) {
         router.push('/main');
       } else {
-        alert('저장 중 오류가 발생했습니다.');
+        const errorText = await res.text();
+        console.error("저장 실패:", errorText);
+        alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
-    } catch {
-      alert('저장 중 오류가 발생했습니다.');
+    } catch (error) {
+      console.error("저장 중 에러:", error);
+      alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
