@@ -38,7 +38,7 @@ export default function LoginPage() {
       return;
     }
     try {
-      const res = await fetch("http://192.168.6.131:8080/api/auth/login", {
+      const res = await fetch("http://172.20.193.4:8080/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password: "dummy" }), // password는 더미
@@ -70,11 +70,15 @@ export default function LoginPage() {
       return;
     }
     try {
-      const res = await fetch("http://192.168.6.131:8080/api/auth/login", {
+      const res = await fetch("http://172.20.193.4:8080/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
+      const responseText = await res.text();
+      console.log("서버 응답:", responseText); // 디버깅을 위한 로그 추가
+
       if (res.status === 404) {
         toast.info("가입된 이메일이 없습니다. 회원가입 페이지로 이동합니다.");
         setTimeout(() => router.push(`/register?email=${encodeURIComponent(email)}`), 1200);
@@ -85,56 +89,35 @@ export default function LoginPage() {
         return;
       }
       if (res.ok) {
-        const data = await res.json();
+        const data = JSON.parse(responseText);
         if (data.accessToken) {
           localStorage.setItem("accessToken", data.accessToken);
         }
         if (data.userId) {
           localStorage.setItem("userId", data.userId);
         }
-        // 로그인 후 유저 정보 조회하여 jobInterests 체크
-        try {
-          const userRes = await fetch(`http://192.168.6.131:8080/api/users/${data.userId}`, {
-            headers: { 
-              "Authorization": `Bearer ${data.accessToken}`,
-              "Content-Type": "application/json"
-            }
-          });
-          
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            const jobInterests = userData.jobInterests ?? [];
-            const certInterests = userData.certInterests ?? [];
-            
-            if (!Array.isArray(jobInterests) || jobInterests.length === 0) {
-              toast.info("관심 직무/업종을 먼저 선택해주세요.");
-              setTimeout(() => router.push("/select-interest"), 1200);
-              return;
-            }
-            
-            if (!Array.isArray(certInterests) || certInterests.length === 0) {
-              toast.info("관심 자격증을 먼저 선택해주세요.");
-              setTimeout(() => router.push("/select-cert"), 1200);
-              return;
-            }
-            
-            toast.success("로그인 성공! 환영합니다.");
-            setTimeout(() => router.push("/main"), 1200);
-          } else {
-            const errorText = await userRes.text();
-            console.error("사용자 정보 조회 실패:", errorText);
-            toast.error("사용자 정보를 가져오는데 실패했습니다. 다시 시도해주세요.");
-          }
-        } catch (error) {
-          console.error("사용자 정보 조회 중 에러:", error);
-          toast.error("사용자 정보를 가져오는데 실패했습니다.");
+        
+        // jobInterests와 certInterests 상태에 따라 리다이렉트
+        if (!data.hasJobInterests) {
+          toast.info("관심 직무/업종을 먼저 선택해주세요.");
+          setTimeout(() => router.push("/select-interest"), 1200);
+          return;
         }
+        
+        if (!data.hasCertInterests) {
+          toast.info("관심 자격증을 먼저 선택해주세요.");
+          setTimeout(() => router.push("/select-cert"), 1200);
+          return;
+        }
+        
+        toast.success("로그인 성공! 환영합니다.");
+        setTimeout(() => router.push("/main"), 1200);
       } else {
-        const errorText = await res.text();
-        console.error("로그인 실패:", errorText);
+        console.error("로그인 실패:", responseText);
         toast.error("로그인 중 오류가 발생했습니다.");
       }
     } catch (e) {
+      console.error("로그인 중 에러:", e);
       toast.error("로그인 중 오류가 발생했습니다.");
     }
   };

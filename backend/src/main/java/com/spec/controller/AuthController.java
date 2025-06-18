@@ -4,6 +4,7 @@ import com.spec.domain.User;
 import com.spec.dto.LoginRequest;
 import com.spec.dto.RegisterRequest;
 import com.spec.repository.UserRepository;
+import com.spec.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +26,7 @@ import com.spec.service.SequenceGeneratorService;
 public class AuthController {
     
     private final UserRepository userRepository;
+    private final AuthService authService;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -36,23 +38,22 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("NOT_REGISTERED");
+        try {
+            Map<String, Object> loginResult = authService.login(loginRequest);
+            
+            // JWT 토큰 생성
+            String token = jwtTokenProvider.createToken(loginRequest.getEmail(), java.util.Arrays.asList("ROLE_USER"));
+            loginResult.put("accessToken", token);
+            
+            return ResponseEntity.ok(loginResult);
+        } catch (RuntimeException e) {
+            if (e.getMessage().equals("NOT_REGISTERED")) {
+                return ResponseEntity.status(404).body("NOT_REGISTERED");
+            } else if (e.getMessage().equals("INVALID_PASSWORD")) {
+                return ResponseEntity.status(401).body("INVALID_PASSWORD");
+            }
+            return ResponseEntity.status(500).body("INTERNAL_SERVER_ERROR");
         }
-        User user = userOpt.get();
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(401).body("INVALID_PASSWORD");
-        }
-    
-        // JWT 토큰 생성 (예시)
-        String token = jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
-    
-        // accessToken과 userId를 JSON으로 반환
-        Map<String, String> response = new HashMap<>();
-        response.put("accessToken", token);
-        response.put("userId", user.getUserId());
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
