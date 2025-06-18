@@ -42,10 +42,16 @@ export default function SelectInterestPage() {
     }
 
     try {
-      const res = await fetch(`http://192.168.6.131:8080/api/users/${userId}`, {
+      const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}/interests`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-        body: JSON.stringify({ jobInterests: selected })
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${accessToken}` 
+        },
+        body: JSON.stringify({ 
+          jobInterests: selected,
+          certInterests: null
+        })
       });
 
       if (res.ok) {

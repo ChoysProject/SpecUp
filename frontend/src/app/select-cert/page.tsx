@@ -1,13 +1,13 @@
+'use client';
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CERT_LIST = [
-  "정보처리기사", "SQLD", "ADsP", "네트워크관리사", "리눅스마스터", "컴퓨터활용능력",
-  "전산회계1급", "AFP", "CFA", "재경관리사", "은행FP",
-  "TOEIC", "TOEFL", "HSK", "JLPT", "OPIc", "텝스",
-  "GTQ", "웹디자인기능사", "컴퓨터그래픽스운용기능사",
-  "토목기사", "건축기사", "기계설계산업기사",
-  "유치원정교사", "보육교사", "청소년지도사"
+  "정보처리기사", "SQLD", "네트워크관리사", "리눅스마스터", "AWS", "CCNA", "정보보안기사",
+  "토익", "토스", "오픽", "JLPT", "HSK", "DELF", "DELE"
 ];
 
 export default function SelectCertPage() {
@@ -18,87 +18,115 @@ export default function SelectCertPage() {
     if (selected.includes(item)) {
       setSelected(selected.filter(s => s !== item));
     } else {
-      if (selected.length >= 5) return;
+      if (selected.length >= 3) {
+        toast.warning("최대 3개까지만 선택 가능합니다.");
+        return;
+      }
       setSelected([...selected, item]);
     }
   };
 
   const handleSave = async () => {
+    if (selected.length === 0) {
+      toast.error("최소 1개 이상의 관심 자격증을 선택해주세요.");
+      return;
+    }
+
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
     const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    
     if (!userId || !accessToken) {
-      alert('로그인이 필요합니다.');
+      toast.error('로그인이 필요합니다.');
       router.push('/login');
       return;
     }
+
     try {
-      const res = await fetch(`http://192.168.6.131:8080/api/users/${userId}`, {
+      const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}/interests`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-        body: JSON.stringify({ certInterests: selected })
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${accessToken}` 
+        },
+        body: JSON.stringify({ 
+          jobInterests: null,
+          certInterests: selected
+        })
       });
+
       if (res.ok) {
-        router.push('/main');
+        toast.success("관심 자격증이 저장되었습니다.");
+        setTimeout(() => router.push('/main'), 1200);
       } else {
         const errorText = await res.text();
         console.error("저장 실패:", errorText);
-        alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+        toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
       }
     } catch (error) {
       console.error("저장 중 에러:", error);
-      alert('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+      toast.error('저장 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fff", padding: 24 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 18 }}>관심 자격증 선택</h2>
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 10 }}>자격증</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          {CERT_LIST.map(item => (
-            <button
-              key={item}
-              onClick={() => handleSelect(item)}
-              style={{
-                padding: "10px 18px",
-                borderRadius: 18,
-                border: selected.includes(item) ? "2px solid #3182f6" : "1px solid #ddd",
-                background: selected.includes(item) ? "#3182f6" : "#fff",
-                color: selected.includes(item) ? "#fff" : "#222",
-                fontWeight: 500,
-                fontSize: 15,
-                marginBottom: 8,
-                cursor: "pointer"
-              }}
-              disabled={selected.length >= 5 && !selected.includes(item)}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+    <div style={{
+      minHeight: '100vh',
+      background: '#fff',
+      padding: '20px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }}>
+      <ToastContainer position="top-center" autoClose={1500} hideProgressBar />
+      
+      <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
+        관심 있는 자격증을 선택해주세요
+      </h1>
+      <p style={{ color: '#666', marginBottom: '2rem', textAlign: 'center' }}>
+        최대 3개까지 선택 가능합니다
+      </p>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+        gap: '10px',
+        width: '100%',
+        maxWidth: '600px'
+      }}>
+        {CERT_LIST.map((item) => (
+          <button
+            key={item}
+            onClick={() => handleSelect(item)}
+            style={{
+              padding: '12px',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              background: selected.includes(item) ? '#3182f6' : '#fff',
+              color: selected.includes(item) ? '#fff' : '#333',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            {item}
+          </button>
+        ))}
       </div>
-      <div style={{ textAlign: "right" }}>
-        <button
-          onClick={handleSave}
-          disabled={selected.length === 0}
-          style={{
-            background: selected.length ? "#3182f6" : "#bbb",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "12px 32px",
-            fontSize: 17,
-            fontWeight: 600,
-            cursor: selected.length ? "pointer" : "not-allowed"
-          }}
-        >
-          저장
-        </button>
-      </div>
-      <div style={{ color: "#888", fontSize: 14, marginTop: 18 }}>
-        최대 5개까지 선택할 수 있습니다.
-      </div>
+
+      <button
+        onClick={handleSave}
+        style={{
+          marginTop: '2rem',
+          padding: '12px 24px',
+          background: '#3182f6',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '1rem'
+        }}
+      >
+        저장하기
+      </button>
     </div>
   );
 } 

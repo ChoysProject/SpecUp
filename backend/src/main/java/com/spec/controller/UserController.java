@@ -2,7 +2,9 @@ package com.spec.controller;
 
 import com.spec.domain.User;
 import com.spec.repository.UserRepository;
+import com.spec.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,85 +13,22 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getUser(@PathVariable String userId) {
+    public ResponseEntity<User> getUser(@PathVariable String userId) {
         return userRepository.findByUserId(userId)
-            .map(user -> {
-                // 경력 만년수 계산
-                int totalMonths = 0;
-                if (user.getCareers() != null) {
-                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                    for (var c : user.getCareers()) {
-                        if (c.getStartDate() != null && !c.getStartDate().isEmpty()) {
-                            LocalDate start = LocalDate.parse(c.getStartDate(), fmt);
-                            LocalDate end = (c.getEndDate() != null && !c.getEndDate().isEmpty()) ? LocalDate.parse(c.getEndDate(), fmt) : LocalDate.now();
-                            totalMonths += Period.between(start, end).getYears() * 12 + Period.between(start, end).getMonths();
-                        }
-                    }
-                }
-                double totalYears = Math.round((totalMonths / 12.0) * 10) / 10.0; // 소수점 1자리
-
-                // 최고 학력 추출 (degree 기준, 없으면 마지막 학력)
-                String topDegree = null;
-                String topSchool = null;
-                if (user.getEducations() != null && !user.getEducations().isEmpty()) {
-                    // degree 우선순위: 박사 > 석사 > 학사 > 기타
-                    Comparator<String> degreeOrder = Comparator.comparingInt(d -> {
-                        if (d == null) return 99;
-                        if (d.contains("박사")) return 1;
-                        if (d.contains("석사")) return 2;
-                        if (d.contains("학사")) return 3;
-                        return 99;
-                    });
-                    var topEdu = user.getEducations().stream()
-                        .sorted((a, b) -> degreeOrder.compare(a.getDegree(), b.getDegree()))
-                        .findFirst().orElse(user.getEducations().get(0));
-                    topDegree = topEdu.getDegree();
-                    topSchool = topEdu.getSchool();
-                }
-
-                // 네모 박스용 데이터
-                var boxCareers = user.getCareers() != null ? user.getCareers().stream().map(c -> c.getCompany()).collect(Collectors.toList()) : null;
-                var boxEducations = user.getEducations() != null ? user.getEducations().stream().map(e -> e.getSchool()).collect(Collectors.toList()) : null;
-                var boxPortfolios = user.getPortfolios() != null ? user.getPortfolios().stream().map(p -> p.getName()).collect(Collectors.toList()) : null;
-                var boxCertificates = user.getCertificates() != null ? user.getCertificates().stream().map(c -> c.getName()).collect(Collectors.toList()) : null;
-
-                // 커스텀 응답 DTO
-                var resp = new java.util.HashMap<String, Object>();
-                resp.put("name", user.getName());
-                resp.put("email", user.getEmail());
-                resp.put("phone", user.getPhone());
-                resp.put("birth", user.getBirth());
-                resp.put("age", user.getAge());
-                resp.put("address", user.getAddress());
-                resp.put("photoUrl", user.getPhotoUrl());
-                resp.put("careers", user.getCareers());
-                resp.put("educations", user.getEducations());
-                resp.put("skills", user.getSkills());
-                resp.put("experiences", user.getExperiences());
-                resp.put("certificates", user.getCertificates());
-                resp.put("portfolios", user.getPortfolios());
-                resp.put("selfIntro", user.getSelfIntro());
-                resp.put("careerTotalYears", totalYears);
-                resp.put("topDegree", topDegree);
-                resp.put("topSchool", topSchool);
-                resp.put("boxCareers", boxCareers);
-                resp.put("boxEducations", boxEducations);
-                resp.put("boxPortfolios", boxPortfolios);
-                resp.put("boxCertificates", boxCertificates);
-                resp.put("jobInterests", user.getJobInterests() != null ? user.getJobInterests() : new java.util.ArrayList<>());
-                resp.put("certInterests", user.getCertInterests() != null ? user.getCertInterests() : new java.util.ArrayList<>());
-                return ResponseEntity.ok(resp);
-            })
-            .orElse(ResponseEntity.notFound().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{userId}")
@@ -105,6 +44,25 @@ public class UserController {
                 return ResponseEntity.ok(userRepository.save(user));
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{userId}/interests")
+    public ResponseEntity<?> updateUserInterests(
+            @PathVariable String userId,
+            @RequestBody Map<String, List<String>> request) {
+        try {
+            log.info("Updating interests for user: {}", userId);
+            List<String> jobInterests = request.get("jobInterests");
+            List<String> certInterests = request.get("certInterests");
+            
+            log.info("Job interests: {}, Cert interests: {}", jobInterests, certInterests);
+            
+            User updatedUser = userService.updateUserInterests(userId, jobInterests, certInterests);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            log.error("Error updating user interests: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // 기존 사용자들의 roles 필드를 업데이트하는 엔드포인트
