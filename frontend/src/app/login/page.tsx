@@ -271,6 +271,7 @@ export default function LoginPage() {
                   justifyContent: "center",
                   alignItems: "center",
                   boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  overflow: "hidden",
                 }}
                 onClick={() => window.location.href = KAKAO_LOGIN_URL}
               >
@@ -293,10 +294,21 @@ export default function LoginPage() {
                   justifyContent: "center",
                   alignItems: "center",
                   boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  overflow: "hidden",
                 }}
                 onClick={() => window.location.href = GOOGLE_LOGIN_URL}
               >
-                <Image src="/images/g-logo.png" alt="구글" width={36} height={36} />
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}>
+                  <Image src="/images/g-logo.png" alt="구글" width={28} height={28} />
+                </div>
               </button>
               <div style={{ fontSize: 12, color: "#444", marginTop: 8 }}>Google</div>
             </div>

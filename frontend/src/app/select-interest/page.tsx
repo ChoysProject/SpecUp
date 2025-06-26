@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-<<<<<<< HEAD
 interface CategoryItem {
   name: string;
   icon: string;
@@ -77,11 +76,14 @@ const JOB_LIST: CategoryItem[] = [
   { name: "환경/에너지 전문가", icon: "🌱" },
   { name: "드론/로봇 전문가", icon: "🛸" },
   { name: "블록체인/핀테크", icon: "💎" }
-=======
-const INDUSTRY_LIST = [
-  "의료/건강/제약", "IT/포털/인터넷", "교육업", "광고/마케팅업계", "디자인업계", "무역/상사", "금융업", "세무/회계",
-  "법률/법무", "부동산/건설", "유통/물류", "제조/생산", "서비스업", "미디어/출판", "공공/비영리"
->>>>>>> 9960f415eace9ffdc6cc8588fced601febdbd135
+];
+
+const CERT_LIST = [
+  { name: "정보처리기사", category: "IT/개발" },
+  { name: "SQLD", category: "IT/개발" },
+  { name: "간호사", category: "의료/보건" },
+  { name: "한식조리기능사", category: "요리/식음료" },
+  // ... 더 많은 자격증
 ];
 
 export default function SelectInterestPage() {
@@ -143,9 +145,8 @@ export default function SelectInterestPage() {
   };
 
   return (
-<<<<<<< HEAD
     <div style={{ minHeight: "100vh", background: "#fff", padding: 24 }}>
-      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 18 }}>업종/직무</h2>
+      <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 18, color: '#222' }}>업종/직무</h2>
       <div style={{ marginBottom: 32 }}>
         <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 10 }}>업종</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -222,68 +223,9 @@ export default function SelectInterestPage() {
           저장
         </button>
       </div>
-      <div style={{ color: "#888", fontSize: 14, marginTop: 18 }}>
+      <div style={{ color: "#222", fontSize: 14, marginTop: 18, fontWeight: 500 }}>
         최대 3개까지 선택할 수 있습니다.
-=======
-    <div style={{
-      minHeight: '100vh',
-      background: '#fff',
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }}>
-      <ToastContainer position="top-center" autoClose={1500} hideProgressBar />
-      
-      <h1 style={{ fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
-        관심 있는 업종을 선택해주세요
-      </h1>
-      <p style={{ color: '#666', marginBottom: '2rem', textAlign: 'center' }}>
-        최대 3개까지 선택 가능합니다
-      </p>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-        gap: '10px',
-        width: '100%',
-        maxWidth: '600px'
-      }}>
-        {INDUSTRY_LIST.map((item) => (
-          <button
-            key={item}
-            onClick={() => handleSelect(item)}
-            style={{
-              padding: '12px',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              background: selected.includes(item) ? '#3182f6' : '#fff',
-              color: selected.includes(item) ? '#fff' : '#333',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            {item}
-          </button>
-        ))}
->>>>>>> 9960f415eace9ffdc6cc8588fced601febdbd135
       </div>
-
-      <button
-        onClick={handleSave}
-        style={{
-          marginTop: '2rem',
-          padding: '12px 24px',
-          background: '#3182f6',
-          color: '#fff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          fontSize: '1rem'
-        }}
-      >
-        저장하기
-      </button>
     </div>
   );
 } 
