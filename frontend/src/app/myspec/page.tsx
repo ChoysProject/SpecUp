@@ -1,19 +1,25 @@
 'use client';
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // profile 타입 명시
 type ProfileType = {
   name: string;
+  email: string;
+  gender: string;
   birth: string;
   age: number | null;
-  email: string;
-  phone: string;
-  address: string;
   photo: string;
+  homeAddress: string;
+  workAddress: string;
+  interestAddress: string;
+  mbti?: string;
+  jobInterests?: string[];
+  certInterests?: string[];
+  selfIntro?: string;
 } | null;
 
 type CareerType = {
@@ -60,6 +66,7 @@ export default function MySpecPage() {
   const [certificates, setCertificates] = useState<CertificateType[]>([]);
   const [portfolios, setPortfolios] = useState<PortfolioType[]>([]);
   const [selfIntro, setSelfIntro] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // userId 추출 (실제 서비스에서는 JWT decode 필요)
   useEffect(() => {
@@ -77,12 +84,18 @@ export default function MySpecPage() {
         if (data) {
           setProfile({
             name: data.name,
+            email: data.email,
+            gender: data.gender,
             birth: data.birth,
             age: data.age,
-            email: data.email,
-            phone: data.phone,
-            address: data.address,
             photo: data.photoUrl,
+            homeAddress: data.homeAddress,
+            workAddress: data.workAddress,
+            interestAddress: data.interestAddress,
+            mbti: data.mbti,
+            jobInterests: data.jobInterests || [],
+            certInterests: data.certInterests || [],
+            selfIntro: data.selfIntro || "",
           });
           setCareer(data.careers || []);
           setEducation(data.educations || []);
@@ -156,37 +169,115 @@ export default function MySpecPage() {
   const handleAdd = (section: any) => alert(`${section} 추가하기`);
   const handleEdit = (section: any) => alert(`${section} 수정하기`);
 
+  // 프로필 사진 업로드 핸들러
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      // photo만 업데이트
+      if (profile) {
+        const userId = localStorage.getItem('userId');
+        const accessToken = localStorage.getItem('accessToken');
+        const updatedProfile = { ...profile, photo: base64 };
+        setProfile(updatedProfile);
+        // 서버에 저장
+        await fetch(`/api/users/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+          body: JSON.stringify({ ...updatedProfile }),
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 자기소개 수정 핸들러
+  const handleSelfIntroChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newIntro = e.target.value;
+    setProfile(prev => prev ? { ...prev, selfIntro: newIntro } : prev);
+    const userId = localStorage.getItem('userId');
+    const accessToken = localStorage.getItem('accessToken');
+    await fetch(`/api/users/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+      body: JSON.stringify({ ...profile, selfIntro: newIntro }),
+    });
+  };
+
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 48, background: "#fff" }}>
+    <div style={{ maxWidth: 480, margin: "0 auto", padding: 24, background: "#fff", borderRadius: 18, boxShadow: "0 2px 16px #eee", boxSizing: 'border-box' }}>
       <ToastContainer position="top-center" autoClose={1500} hideProgressBar />
-      {/* 프로필 */}
-      <div style={{ display: "flex", alignItems: "center", gap: 32, borderBottom: "1px solid #eee", paddingBottom: 32, marginBottom: 32 }}>
-        <div style={{ flex: 1 }}>
-          {profile ? (
-            <>
-              <div style={{ fontSize: 32, fontWeight: 700 }}>{profile.name}</div>
-              <div style={{ color: "#888", margin: "6px 0" }}>{profile.birth} ({profile.age}세)</div>
-              <div style={{ color: "#666", fontSize: 16, marginBottom: 8 }}>{profile.email} | {profile.phone}</div>
-              <div style={{ color: "#666", fontSize: 16 }}>{profile.address}</div>
-            </>
-          ) : (
-            <div style={{ color: "#bbb", fontSize: 20 }}>프로필 정보를 입력해주세요.</div>
-          )}
+      {/* 프로필 카드형 상단 */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, borderBottom: "1px solid #eee", paddingBottom: 24, marginBottom: 24, width: '100%' }}>
+        <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />
+        {profile && profile.photo ? (
+          <div style={{ cursor: 'pointer' }} onClick={handlePhotoClick}>
+            <Image src={profile.photo} alt="증명사진" width={96} height={96} style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid #e3e3e3" }} />
+          </div>
+        ) : (
+          <div style={{ width: 96, height: 96, background: "#f0f0f0", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb", fontSize: 18, border: "2px solid #e3e3e3", cursor: 'pointer' }} onClick={handlePhotoClick}>
+            사진 없음
+          </div>
+        )}
+        <div style={{ fontSize: 22, fontWeight: 700 }}>{profile?.name || '-'}</div>
+        <div style={{ color: "#888", fontSize: 15 }}>{profile?.email || '-'}</div>
+        <div style={{ display: "flex", gap: 8, margin: "8px 0" }}>
+          <span style={{ background: "#f5f5f5", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>{profile?.gender || '-'}</span>
+          <span style={{ background: "#f5f5f5", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>{profile?.birth || '-'}</span>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+          <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>집: {profile?.homeAddress || '-'}</span>
+          <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>회사: {profile?.workAddress || '-'}</span>
+          <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>관심지역: {profile?.interestAddress || '-'}</span>
+        </div>
+        {profile?.mbti && (
+          <div style={{ marginTop: 6, color: "#666", fontSize: 15 }}>MBTI: {profile.mbti}</div>
+        )}
+        <div style={{ marginTop: 10, color: "#444", fontSize: 15, textAlign: "center", minHeight: 24, width: '100%' }}>
+          <textarea
+            value={profile?.selfIntro || ''}
+            onChange={handleSelfIntroChange}
+            placeholder="소개를 입력해주세요."
+            style={{ width: '100%', minHeight: 60, border: '1px solid #eee', borderRadius: 8, padding: 8, fontSize: 15, resize: 'vertical', boxSizing: 'border-box' }}
+          />
+        </div>
+        <button
+          style={{ ...btnStyle, marginTop: 12 }}
+          onClick={handleSave}
+        >
+          {profile ? <><span style={{ fontSize: 18 }}>+ 수정</span></> : <><span style={{ fontSize: 18 }}>+ 추가</span></>}
+        </button>
+      </div>
+      {/* 관심 직무/업무, 관심 자격증 태그형 */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+        <div>
+          <span style={{ fontWeight: 600, fontSize: 15 }}>관심 직무/업무</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+            {profile?.jobInterests && profile.jobInterests.length > 0 ? (
+              profile.jobInterests.map((job, i) => (
+                <span key={i} style={{ background: "#f9e7ff", color: "#a14ee6", borderRadius: 12, padding: "4px 12px", fontSize: 14 }}>{job}</span>
+              ))
+            ) : (
+              <span style={{ color: "#bbb", fontSize: 14 }}>-</span>
+            )}
+          </div>
         </div>
         <div>
-          {profile && profile.photo ? (
-            <Image src={profile.photo} alt="증명사진" width={120} height={150} style={{ borderRadius: 12, objectFit: "cover" }} />
-          ) : (
-            <div style={{ width: 120, height: 150, background: "#f0f0f0", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb" }}>
-              사진 없음
-            </div>
-          )}
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={handleSave}
-          >
-            {profile ? <><span style={{ fontSize: 18 }}>+ 수정</span></> : <><span style={{ fontSize: 18 }}>+ 추가</span></>}
-          </button>
+          <span style={{ fontWeight: 600, fontSize: 15 }}>관심 자격증</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+            {profile?.certInterests && profile.certInterests.length > 0 ? (
+              profile.certInterests.map((cert, i) => (
+                <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "4px 12px", fontSize: 14 }}>{cert}</span>
+              ))
+            ) : (
+              <span style={{ color: "#bbb", fontSize: 14 }}>-</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -382,6 +473,17 @@ export default function MySpecPage() {
           <div style={{ color: "#bbb", fontSize: 16 }}>자기소개를 입력해주세요.</div>
         )}
       </section>
+
+      {/* 반응형 스타일 */}
+      <style jsx global>{`
+        @media (max-width: 600px) {
+          div[style*='max-width: 480px'] {
+            max-width: 100vw !important;
+            padding: 8px !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

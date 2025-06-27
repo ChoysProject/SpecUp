@@ -40,4 +40,5 @@ public class User {
     // 약관 동의 등 필요한 필드는 추후 추가
     private List<String> jobInterests;   // 업종/직무 관심사
     private List<String> certInterests;  // 관심 자격증
+    private String gender; // 성별 추가
 }

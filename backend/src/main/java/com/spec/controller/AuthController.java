@@ -77,6 +77,7 @@ public class AuthController {
                 .homeAddress(registerRequest.getHomeAddress())
                 .workAddress(registerRequest.getWorkAddress())
                 .interestAddress(registerRequest.getInterestAddress())
+                .gender(registerRequest.getGender())
                 .jobInterests(new java.util.ArrayList<>())
                 .certInterests(new java.util.ArrayList<>())
                 .roles(java.util.Arrays.asList("ROLE_USER"))

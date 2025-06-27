@@ -141,6 +141,7 @@ export default function RegisterPage() {
           homeAddress: form.homeAddress,
           workAddress: form.workAddress,
           interestAddress: form.interestAddress,
+          gender: form.gender,
         }),
       });
     setLoading(false);
