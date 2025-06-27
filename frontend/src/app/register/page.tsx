@@ -125,7 +125,8 @@ export default function RegisterPage() {
       return;
     }
     setLoading(true);
-    const res = await fetch('http://localhost:8080/api/auth/register', {
+    const BASE_URL = "http://172.20.193.4:8080";
+    const res = await fetch(`${BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -141,6 +142,7 @@ export default function RegisterPage() {
           homeAddress: form.homeAddress,
           workAddress: form.workAddress,
           interestAddress: form.interestAddress,
+          gender: form.gender,
         }),
       });
     setLoading(false);
@@ -169,7 +171,7 @@ export default function RegisterPage() {
     setDongKeyword(value);
     if (value.length > 1) {
       try {
-        const res = await fetch(`http://localhost:8080/api/dong?keyword=${encodeURIComponent(value)}`);
+        const res = await fetch(`http://172.20.193.4:8080/api/dong?keyword=${encodeURIComponent(value)}`);
         if (!res.ok) {
           setDongList([]);
           return;

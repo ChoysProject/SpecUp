@@ -1,19 +1,22 @@
 'use client';
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // profile 타입 명시
 type ProfileType = {
+  email: string;
   name: string;
   birth: string;
-  age: number | null;
-  email: string;
-  phone: string;
-  address: string;
+  homeAddress: string;
+  workAddress: string;
+  interestAddress: string;
+  jobInterests: string[];
+  certInterests: string[];
   photo: string;
+  selfIntro: string;
 } | null;
 
 type CareerType = {
@@ -49,6 +52,19 @@ type PortfolioType = {
   url: string;
 };
 
+// 모달 컴포넌트
+function Modal({ open, onClose, children }: { open: boolean, onClose: () => void, children: React.ReactNode }) {
+  if (!open) return null;
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.3)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ background: '#fff', borderRadius: 12, padding: 24, minWidth: 320, maxWidth: 400, width: '90vw', boxShadow: '0 2px 16px #aaa', position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>×</button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function MySpecPage() {
   // 예시: 실제로는 API로 받아오거나 props/context로 관리
   // null 또는 빈 배열이면 데이터 없음으로 간주
@@ -60,6 +76,10 @@ export default function MySpecPage() {
   const [certificates, setCertificates] = useState<CertificateType[]>([]);
   const [portfolios, setPortfolios] = useState<PortfolioType[]>([]);
   const [selfIntro, setSelfIntro] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'profile'|'job'|'cert'>('profile');
+  const [editProfile, setEditProfile] = useState<ProfileType|null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // userId 추출 (실제 서비스에서는 JWT decode 필요)
   useEffect(() => {
@@ -69,20 +89,23 @@ export default function MySpecPage() {
       window.location.href = '/login';
       return;
     }
-    fetch(`/api/users/${userId}`, {
+    fetch(`http://172.20.193.4:8080/api/users/${userId}`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
           setProfile({
+            email: data.email,
             name: data.name,
             birth: data.birth,
-            age: data.age,
-            email: data.email,
-            phone: data.phone,
-            address: data.address,
-            photo: data.photoUrl,
+            homeAddress: data.homeAddress,
+            workAddress: data.workAddress,
+            interestAddress: data.interestAddress,
+            jobInterests: data.jobInterests || [],
+            certInterests: data.certInterests || [],
+            photo: data.photoUrl || '',
+            selfIntro: data.selfIntro || '',
           });
           setCareer(data.careers || []);
           setEducation(data.educations || []);
@@ -95,44 +118,87 @@ export default function MySpecPage() {
       });
   }, []);
 
-  // 저장/수정 핸들러 (PUT만 사용)
-  const handleSave = async () => {
+  // 최신 데이터 fetch 함수
+  const fetchProfile = async () => {
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!userId || !accessToken) return;
+    const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (res.ok) {
+      const data = await res.json();
+      setProfile({
+        email: data.email,
+        name: data.name,
+        birth: data.birth,
+        homeAddress: data.homeAddress,
+        workAddress: data.workAddress,
+        interestAddress: data.interestAddress,
+        jobInterests: data.jobInterests || [],
+        certInterests: data.certInterests || [],
+        photo: data.photoUrl || '',
+        selfIntro: data.selfIntro || '',
+      });
+    }
+  };
+  useEffect(() => { fetchProfile(); }, []);
+
+  // 프로필 수정 모달 열기
+  const openProfileModal = () => {
+    setEditProfile(profile);
+    setModalType('profile');
+    setModalOpen(true);
+  };
+  // 관심 직무/자격증 수정 모달 열기
+  const openJobModal = () => {
+    setEditProfile(profile);
+    setModalType('job');
+    setModalOpen(true);
+  };
+  const openCertModal = () => {
+    setEditProfile(profile);
+    setModalType('cert');
+    setModalOpen(true);
+  };
+
+  // 프로필 정보 변경 핸들러
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setEditProfile(prev => prev ? { ...prev, [name]: value } : prev);
+  };
+  // 태그(관심사) 추가/삭제
+  const handleTagAdd = (type: 'jobInterests'|'certInterests', value: string) => {
+    setEditProfile(prev => prev ? { ...prev, [type]: [...(prev[type]||[]), value] } : prev);
+  };
+  const handleTagRemove = (type: 'jobInterests'|'certInterests', idx: number) => {
+    setEditProfile(prev => prev ? { ...prev, [type]: prev[type]?.filter((_,i)=>i!==idx) } : prev);
+  };
+  // 사진 업로드
+  const handlePhotoClick = () => { fileInputRef.current?.click(); };
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditProfile(prev => prev ? { ...prev, photo: reader.result as string } : prev);
+    };
+    reader.readAsDataURL(file);
+  };
+  // 저장(백엔드 반영)
+  const handleModalSave = async () => {
+    if (!editProfile) return;
     const userId = localStorage.getItem('userId');
     const accessToken = localStorage.getItem('accessToken');
-    if (!userId || !accessToken) {
-      toast.error("로그인이 필요합니다.");
-      return;
-    }
-    const userSpec = {
-      userId,
-      name: profile?.name || "",
-      birth: profile?.birth || "",
-      age: profile?.age || null,
-      email: profile?.email || "",
-      phone: profile?.phone || "",
-      address: profile?.address || "",
-      photoUrl: profile?.photo || "",
-      careers: career,
-      educations: education,
-      skills,
-      experiences,
-      certificates,
-      portfolios,
-      selfIntro,
-    };
-    try {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
-        body: JSON.stringify(userSpec),
-      });
-      if (res.ok) {
-        toast.success("수정 완료!");
-      } else {
-        toast.error("저장 중 오류가 발생했습니다.");
-      }
-    } catch {
-      toast.error("저장 중 오류가 발생했습니다.");
+    const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+      body: JSON.stringify({ ...editProfile, photoUrl: editProfile.photo }),
+    });
+    if (res.ok) {
+      toast.success('저장 완료!');
+      setModalOpen(false);
+      fetchProfile();
+    } else {
+      toast.error('저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -156,37 +222,76 @@ export default function MySpecPage() {
   const handleAdd = (section: any) => alert(`${section} 추가하기`);
   const handleEdit = (section: any) => alert(`${section} 수정하기`);
 
+  // 자기소개 수정 핸들러
+  const handleSelfIntroChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newIntro = e.target.value;
+    setProfile(prev => prev ? { ...prev, selfIntro: newIntro } : prev);
+    const userId = localStorage.getItem('userId');
+    const accessToken = localStorage.getItem('accessToken');
+    await fetch(`http://172.20.193.4:8080/api/users/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${accessToken}` },
+      body: JSON.stringify({ ...profile, selfIntro: newIntro }),
+    });
+  };
+
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 48, background: "#fff" }}>
+    <div style={{ maxWidth: 480, margin: "0 auto", padding: 24, background: "#fff", borderRadius: 18, boxShadow: "0 2px 16px #eee", boxSizing: 'border-box' }}>
       <ToastContainer position="top-center" autoClose={1500} hideProgressBar />
-      {/* 프로필 */}
-      <div style={{ display: "flex", alignItems: "center", gap: 32, borderBottom: "1px solid #eee", paddingBottom: 32, marginBottom: 32 }}>
-        <div style={{ flex: 1 }}>
-          {profile ? (
-            <>
-              <div style={{ fontSize: 32, fontWeight: 700 }}>{profile.name}</div>
-              <div style={{ color: "#888", margin: "6px 0" }}>{profile.birth} ({profile.age}세)</div>
-              <div style={{ color: "#666", fontSize: 16, marginBottom: 8 }}>{profile.email} | {profile.phone}</div>
-              <div style={{ color: "#666", fontSize: 16 }}>{profile.address}</div>
-            </>
-          ) : (
-            <div style={{ color: "#bbb", fontSize: 20 }}>프로필 정보를 입력해주세요.</div>
-          )}
+      {/* 프로필 카드형 상단 */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, borderBottom: "1px solid #eee", paddingBottom: 24, marginBottom: 24, width: '100%' }}>
+        <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />
+        {profile && profile.photo ? (
+          <div style={{ cursor: 'pointer' }} onClick={openProfileModal}>
+            <Image src={profile.photo} alt="증명사진" width={96} height={96} style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid #e3e3e3" }} />
+          </div>
+        ) : (
+          <div style={{ width: 96, height: 96, background: "#f0f0f0", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb", fontSize: 18, border: "2px solid #e3e3e3", cursor: 'pointer' }} onClick={openProfileModal}>
+            사진 없음
+          </div>
+        )}
+        <div style={{ fontSize: 22, fontWeight: 700 }}>{profile?.name || '-'}</div>
+        <div style={{ color: "#888", fontSize: 15 }}>{profile?.email || '-'}</div>
+        <div style={{ color: "#888", fontSize: 15 }}>{profile?.birth || '-'}</div>
+        {/* 자기소개 영역 */}
+        <div style={{ margin: '12px 0', width: '100%', textAlign: 'center', color: '#444', fontSize: 15, minHeight: 24, whiteSpace: 'pre-line' }}>
+          {profile?.selfIntro ? profile.selfIntro : '자기소개를 입력해주세요.'}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+          <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>집: {profile?.homeAddress || '-'}</span>
+          <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>회사: {profile?.workAddress || '-'}</span>
+          <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>관심지역: {profile?.interestAddress || '-'}</span>
+        </div>
+        {/* 자기소개, MBTI 등은 users 컬렉션 구조에 맞게 필요시 추가 */}
+        <button style={{ ...btnStyle, marginTop: 12 }} onClick={openProfileModal}>프로필 수정</button>
+      </div>
+      {/* 관심 직무/업무, 관심 자격증 태그형 */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+        <div>
+          <span style={{ fontWeight: 600, fontSize: 15 }}>관심 직무/업무</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+            {profile?.jobInterests && profile.jobInterests.length > 0 ? (
+              profile.jobInterests.map((job, i) => (
+                <span key={i} style={{ background: "#f9e7ff", color: "#a14ee6", borderRadius: 12, padding: "4px 12px", fontSize: 14 }}>{job}</span>
+              ))
+            ) : (
+              <span style={{ color: "#bbb", fontSize: 14 }}>-</span>
+            )}
+            <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={openJobModal}>수정</button>
+          </div>
         </div>
         <div>
-          {profile && profile.photo ? (
-            <Image src={profile.photo} alt="증명사진" width={120} height={150} style={{ borderRadius: 12, objectFit: "cover" }} />
-          ) : (
-            <div style={{ width: 120, height: 150, background: "#f0f0f0", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb" }}>
-              사진 없음
-            </div>
-          )}
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={handleSave}
-          >
-            {profile ? <><span style={{ fontSize: 18 }}>+ 수정</span></> : <><span style={{ fontSize: 18 }}>+ 추가</span></>}
-          </button>
+          <span style={{ fontWeight: 600, fontSize: 15 }}>관심 자격증</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+            {profile?.certInterests && profile.certInterests.length > 0 ? (
+              profile.certInterests.map((cert, i) => (
+                <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "4px 12px", fontSize: 14 }}>{cert}</span>
+              ))
+            ) : (
+              <span style={{ color: "#bbb", fontSize: 14 }}>-</span>
+            )}
+            <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={openCertModal}>수정</button>
+          </div>
         </div>
       </div>
 
@@ -382,6 +487,63 @@ export default function MySpecPage() {
           <div style={{ color: "#bbb", fontSize: 16 }}>자기소개를 입력해주세요.</div>
         )}
       </section>
+
+      {/* 모달 렌더링 */}
+      <Modal open={modalOpen} onClose={()=>setModalOpen(false)}>
+        {modalType==='profile' && editProfile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 18 }}>프로필 수정</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />
+              <div style={{ cursor: 'pointer' }} onClick={()=>fileInputRef.current?.click()}>
+                {editProfile.photo ? <Image src={editProfile.photo} alt="증명사진" width={80} height={80} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid #e3e3e3' }} /> : <div style={{ width: 80, height: 80, background: '#f0f0f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: 16, border: '2px solid #e3e3e3' }}>사진 없음</div>}
+              </div>
+            </div>
+            <input name="name" value={editProfile.name} onChange={handleEditChange} placeholder="닉네임" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="birth" value={editProfile.birth} onChange={handleEditChange} placeholder="생년월일 (예: 1995-01-01)" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="homeAddress" value={editProfile.homeAddress} onChange={handleEditChange} placeholder="집 주소" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="workAddress" value={editProfile.workAddress} onChange={handleEditChange} placeholder="회사 주소" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="interestAddress" value={editProfile.interestAddress} onChange={handleEditChange} placeholder="관심 지역" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <textarea name="selfIntro" value={editProfile.selfIntro} onChange={handleEditChange} placeholder="자기소개" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee', minHeight: 60 }} />
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleModalSave}>저장</button>
+          </div>
+        )}
+        {modalType==='job' && editProfile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 18 }}>관심 직무/업무 수정</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {editProfile.jobInterests?.map((job, i) => (
+                <span key={i} style={{ background: '#f9e7ff', color: '#a14ee6', borderRadius: 12, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }} onClick={()=>handleTagRemove('jobInterests',i)}>{job} ×</span>
+              ))}
+            </div>
+            <input type="text" placeholder="관심 직무 추가" onKeyDown={e=>{if(e.key==='Enter'){handleTagAdd('jobInterests',(e.target as HTMLInputElement).value);(e.target as HTMLInputElement).value='';}}} style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleModalSave}>저장</button>
+          </div>
+        )}
+        {modalType==='cert' && editProfile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 18 }}>관심 자격증 수정</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {editProfile.certInterests?.map((cert, i) => (
+                <span key={i} style={{ background: '#e3f0ff', color: '#3182f6', borderRadius: 12, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }} onClick={()=>handleTagRemove('certInterests',i)}>{cert} ×</span>
+              ))}
+            </div>
+            <input type="text" placeholder="관심 자격증 추가" onKeyDown={e=>{if(e.key==='Enter'){handleTagAdd('certInterests',(e.target as HTMLInputElement).value);(e.target as HTMLInputElement).value='';}}} style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleModalSave}>저장</button>
+          </div>
+        )}
+      </Modal>
+
+      {/* 반응형 스타일 */}
+      <style jsx global>{`
+        @media (max-width: 600px) {
+          div[style*='max-width: 480px'] {
+            max-width: 100vw !important;
+            padding: 8px !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

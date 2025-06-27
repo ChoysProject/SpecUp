@@ -55,7 +55,7 @@ export default function Header() {
   useEffect(() => {
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
     if (!userId) return;
-    fetch(`/api/users/${userId}`)
+    fetch(`http://172.20.193.4:8080/api/users/${userId}`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data && data.name) setUserName(data.name);
