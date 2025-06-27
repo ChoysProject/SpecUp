@@ -154,10 +154,10 @@ export default function LoginPage() {
         />
 
         {/* 소개 멘트 */}
-        <div style={{ fontSize: 18, color: "#444", marginBottom: 4, textAlign: "center" }}>
+        <div style={{ fontSize: 18, color: "#222", marginBottom: 4, textAlign: "center" }}>
           쉽고 똑똑한 자격증 관리의 시작
         </div>
-        <div style={{ fontSize: 14, color: "#888", marginBottom: 24, textAlign: "center" }}>
+        <div style={{ fontSize: 14, color: "#333", marginBottom: 24, textAlign: "center" }}>
           모든 자격증, 일정, 커뮤니티를 한 곳에서!
         </div>
 
@@ -254,7 +254,7 @@ export default function LoginPage() {
 
         {/* 소셜 로그인 */}
         <div style={{ width: "100%", marginTop: 32, textAlign: "center" }}>
-          <div style={{ color: "#aaa", fontSize: 14, margin: "16px 0 12px 0" }}>또는</div>
+          <div style={{ color: "#444", fontSize: 14, margin: "16px 0 12px 0" }}>또는</div>
           <div style={{ display: "flex", justifyContent: "center", gap: 36 }}>
             {/* 카카오 로그인 버튼 그룹 */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -313,7 +313,7 @@ export default function LoginPage() {
               <div style={{ fontSize: 12, color: "#444", marginTop: 8 }}>Google</div>
             </div>
           </div>
-          <div style={{ color: "#bbb", fontSize: 12, marginTop: 24 }}>
+          <div style={{ color: "#444", fontSize: 12, marginTop: 24 }}>
             걱정마세요! 여러분의 활동은 SNS에 노출되지 않습니다.
           </div>
         </div>

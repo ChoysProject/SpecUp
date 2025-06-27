@@ -37,6 +37,10 @@ public class UserController {
             .map(existing -> {
                 user.setId(existing.getId());
                 user.setUserId(userId);
+                // 기존 비밀번호 유지
+                if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                    user.setPassword(existing.getPassword());
+                }
                 // roles가 null이면 기본 role 추가
                 if (user.getRoles() == null) {
                     user.setRoles(java.util.Arrays.asList("ROLE_USER"));
