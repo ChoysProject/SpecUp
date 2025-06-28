@@ -250,12 +250,12 @@ export default function MySpecPage() {
             사진 없음
           </div>
         )}
-        <div style={{ fontSize: 22, fontWeight: 700 }}>{profile?.name || '-'}</div>
+        <div style={{ fontSize: 22, fontWeight: 700, color: '#444' }}>{profile?.name || '-'}</div>
         <div style={{ color: "#888", fontSize: 15 }}>{profile?.email || '-'}</div>
         <div style={{ color: "#888", fontSize: 15 }}>{profile?.birth || '-'}</div>
         {/* 자기소개 영역 */}
-        <div style={{ margin: '12px 0', width: '100%', textAlign: 'center', color: '#444', fontSize: 15, minHeight: 24, whiteSpace: 'pre-line' }}>
-          {profile?.selfIntro ? profile.selfIntro : '자기소개를 입력해주세요.'}
+        <div style={{ margin: '12px 0', width: '100%', textAlign: 'center', color: '#444', fontSize: 15, minHeight: 24, whiteSpace: 'pre-line', fontWeight: 700 }}>
+          {profile?.selfIntro ? profile.selfIntro : <span style={{ color: '#444', fontWeight: 700 }}>자기소개를 입력해주세요.</span>}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
           <span style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "2px 12px", fontSize: 14 }}>집: {profile?.homeAddress || '-'}</span>
@@ -268,27 +268,27 @@ export default function MySpecPage() {
       {/* 관심 직무/업무, 관심 자격증 태그형 */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
         <div>
-          <span style={{ fontWeight: 600, fontSize: 15 }}>관심 직무/업무</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: '#444' }}>관심 직무/업무</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
             {profile?.jobInterests && profile.jobInterests.length > 0 ? (
               profile.jobInterests.map((job, i) => (
                 <span key={i} style={{ background: "#f9e7ff", color: "#a14ee6", borderRadius: 12, padding: "4px 12px", fontSize: 14 }}>{job}</span>
               ))
             ) : (
-              <span style={{ color: "#bbb", fontSize: 14 }}>-</span>
+              <span style={{ color: "#bbb", fontSize: 14, fontWeight: 700 }}>-</span>
             )}
             <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={openJobModal}>수정</button>
           </div>
         </div>
         <div>
-          <span style={{ fontWeight: 600, fontSize: 15 }}>관심 자격증</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: '#444' }}>관심 자격증</span>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
             {profile?.certInterests && profile.certInterests.length > 0 ? (
               profile.certInterests.map((cert, i) => (
                 <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 12, padding: "4px 12px", fontSize: 14 }}>{cert}</span>
               ))
             ) : (
-              <span style={{ color: "#bbb", fontSize: 14 }}>-</span>
+              <span style={{ color: "#bbb", fontSize: 14, fontWeight: 700 }}>-</span>
             )}
             <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={openCertModal}>수정</button>
           </div>
@@ -298,35 +298,35 @@ export default function MySpecPage() {
       {/* 두번째 섹터: 경력, 학력, 포트폴리오 바로가기, 수상/기타 */}
       <section style={{ marginTop: 32, display: 'flex', gap: 24, justifyContent: 'space-between' }}>
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>경력</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>경력</h3>
           {career.length ? (
             <div>{career[0].company} 외 {career.length - 1}건</div>
           ) : (
-            <div style={{ color: "#bbb" }}>-</div>
+            <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>학력</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>학력</h3>
           {education.length ? (
             <div>{education[0].school} 외 {education.length - 1}건</div>
           ) : (
-            <div style={{ color: "#bbb" }}>-</div>
+            <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>포트폴리오</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>포트폴리오</h3>
           {portfolios.length ? (
             <a href={portfolios[0].url} target="_blank" rel="noopener noreferrer" style={{ color: "#3182f6", textDecoration: "underline" }}>{portfolios[0].name}</a>
           ) : (
-            <div style={{ color: "#bbb" }}>-</div>
+            <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>수상/기타</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>수상/기타</h3>
           {certificates.length ? (
             <div>{certificates[0].name} 외 {certificates.length - 1}건</div>
           ) : (
-            <div style={{ color: "#bbb" }}>-</div>
+            <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
           )}
         </div>
       </section>
@@ -334,7 +334,7 @@ export default function MySpecPage() {
       {/* 나의 자격증 (스킬/주특기 섹터를 자격증으로 변경) */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>나의 자격증</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>나의 자격증</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => certificates.length ? handleEdit("자격증") : handleAdd("자격증")}
@@ -349,14 +349,14 @@ export default function MySpecPage() {
             ))}
           </div>
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>자격증 정보를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자격증 정보를 입력해주세요.</div>
         )}
       </section>
 
       {/* 경력 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>경력</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>경력</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => career.length ? handleEdit("경력") : handleAdd("경력")}
@@ -376,14 +376,14 @@ export default function MySpecPage() {
             </div>
           ))
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>경력 정보를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>경력 정보를 입력해주세요.</div>
         )}
       </section>
 
       {/* 학력 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>학력</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>학력</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => education.length ? handleEdit("학력") : handleAdd("학력")}
@@ -399,14 +399,14 @@ export default function MySpecPage() {
             </div>
           ))
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>학력 정보를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>학력 정보를 입력해주세요.</div>
         )}
       </section>
 
       {/* 경험/활동/교육 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>경험/활동/교육</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>경험/활동/교육</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => experiences.length ? handleEdit("경험/활동/교육") : handleAdd("경험/활동/교육")}
@@ -422,14 +422,14 @@ export default function MySpecPage() {
             </div>
           ))
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>경험/활동/교육 정보를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>경험/활동/교육 정보를 입력해주세요.</div>
         )}
       </section>
 
       {/* 자격/어학/수상 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>자격/어학/수상</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>자격/어학/수상</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => certificates.length ? handleEdit("자격/어학/수상") : handleAdd("자격/어학/수상")}
@@ -444,14 +444,14 @@ export default function MySpecPage() {
             </div>
           ))
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>자격/어학/수상 정보를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자격/어학/수상 정보를 입력해주세요.</div>
         )}
       </section>
 
       {/* 포트폴리오 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>포트폴리오 및 기타문서</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>포트폴리오 및 기타문서</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => portfolios.length ? handleEdit("포트폴리오") : handleAdd("포트폴리오")}
@@ -466,14 +466,14 @@ export default function MySpecPage() {
             </div>
           ))
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>포트폴리오를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>포트폴리오를 입력해주세요.</div>
         )}
       </section>
 
       {/* 자기소개 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>자기소개</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>자기소개</h2>
           <button
             style={{ ...btnStyle, marginTop: 12 }}
             onClick={() => selfIntro ? handleEdit("자기소개") : handleAdd("자기소개")}
@@ -484,7 +484,7 @@ export default function MySpecPage() {
         {selfIntro ? (
           <div style={{ color: "#444", fontSize: 16, whiteSpace: "pre-line" }}>{selfIntro}</div>
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16 }}>자기소개를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자기소개를 입력해주세요.</div>
         )}
       </section>
 
