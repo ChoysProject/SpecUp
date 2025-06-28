@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useRouter } from 'next/navigation';
 
 // profile 타입 명시
 type ProfileType = {
@@ -80,6 +81,12 @@ export default function MySpecPage() {
   const [modalType, setModalType] = useState<'profile'|'job'|'cert'>('profile');
   const [editProfile, setEditProfile] = useState<ProfileType|null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const [editModal, setEditModal] = useState<{type: string, data?: any}|null>(null);
+  // 동 자동완성 상태
+  const [showDongModal, setShowDongModal] = useState<false | 'home' | 'work' | 'interest'>(false);
+  const [dongKeyword, setDongKeyword] = useState('');
+  const [dongList, setDongList] = useState<any[]>([]);
 
   // userId 추출 (실제 서비스에서는 JWT decode 필요)
   useEffect(() => {
@@ -218,9 +225,23 @@ export default function MySpecPage() {
     gap: 6,
   };
 
-  // 버튼 클릭 핸들러 예시
-  const handleAdd = (section: any) => alert(`${section} 추가하기`);
-  const handleEdit = (section: any) => alert(`${section} 수정하기`);
+  // 기존 handleAdd/handleEdit 대체
+  const handleAdd = (section: string) => {
+    setEditModal({ type: section });
+  };
+  const handleEdit = (section: string, data?: any) => {
+    setEditModal({ type: section, data });
+  };
+
+  // 관심 직무/업무, 관심 자격증 수정 시 페이지 이동
+  const handleJobEdit = () => {
+    if (profile?.jobInterests) localStorage.setItem('selectedJobInterests', JSON.stringify(profile.jobInterests));
+    router.push('/select-interest');
+  };
+  const handleCertEdit = () => {
+    if (profile?.certInterests) localStorage.setItem('selectedCertInterests', JSON.stringify(profile.certInterests));
+    router.push('/select-cert');
+  };
 
   // 자기소개 수정 핸들러
   const handleSelfIntroChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -235,6 +256,34 @@ export default function MySpecPage() {
     });
   };
 
+  // 동 입력 핸들러
+  const handleDongInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDongKeyword(value);
+    if (value.length > 1) {
+      try {
+        const res = await fetch(`http://172.20.193.4:8080/api/dong?keyword=${encodeURIComponent(value)}`);
+        if (!res.ok) { setDongList([]); return; }
+        const text = await res.text();
+        if (!text) { setDongList([]); return; }
+        const data = JSON.parse(text);
+        setDongList(Array.isArray(data) ? data : []);
+      } catch (err) { setDongList([]); }
+    } else { setDongList([]); }
+  };
+  // 동 선택 시
+  const handleDongSelect = (dong: any) => {
+    if (showDongModal && editProfile) {
+      setEditProfile(prev => prev ? {
+        ...prev,
+        [`${showDongModal}Address`]: `${dong.city ? dong.city + ' ' : ''}${dong.name}`
+      } : prev);
+      setShowDongModal(false);
+      setDongKeyword('');
+      setDongList([]);
+    }
+  };
+
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", padding: 24, background: "#fff", borderRadius: 18, boxShadow: "0 2px 16px #eee", boxSizing: 'border-box' }}>
       <ToastContainer position="top-center" autoClose={1500} hideProgressBar />
@@ -242,11 +291,11 @@ export default function MySpecPage() {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, borderBottom: "1px solid #eee", paddingBottom: 24, marginBottom: 24, width: '100%' }}>
         <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />
         {profile && profile.photo ? (
-          <div style={{ cursor: 'pointer' }} onClick={openProfileModal}>
+          <div style={{ cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
             <Image src={profile.photo} alt="증명사진" width={96} height={96} style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid #e3e3e3" }} />
           </div>
         ) : (
-          <div style={{ width: 96, height: 96, background: "#f0f0f0", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb", fontSize: 18, border: "2px solid #e3e3e3", cursor: 'pointer' }} onClick={openProfileModal}>
+          <div style={{ width: 96, height: 96, background: "#f0f0f0", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#bbb", fontSize: 18, border: "2px solid #e3e3e3", cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
             사진 없음
           </div>
         )}
@@ -277,7 +326,7 @@ export default function MySpecPage() {
             ) : (
               <span style={{ color: "#bbb", fontSize: 14, fontWeight: 700 }}>-</span>
             )}
-            <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={openJobModal}>수정</button>
+            <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={handleJobEdit}>수정</button>
           </div>
         </div>
         <div>
@@ -290,12 +339,12 @@ export default function MySpecPage() {
             ) : (
               <span style={{ color: "#bbb", fontSize: 14, fontWeight: 700 }}>-</span>
             )}
-            <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={openCertModal}>수정</button>
+            <button style={{ ...btnStyle, padding: '2px 10px', fontSize: 13 }} onClick={handleCertEdit}>수정</button>
           </div>
         </div>
       </div>
 
-      {/* 두번째 섹터: 경력, 학력, 포트폴리오 바로가기, 수상/기타 */}
+      {/* 두번째 섹터: 경력, 학력만 남김 */}
       <section style={{ marginTop: 32, display: 'flex', gap: 24, justifyContent: 'space-between' }}>
         <div style={{ flex: 1 }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>경력</h3>
@@ -313,56 +362,24 @@ export default function MySpecPage() {
             <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
           )}
         </div>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>포트폴리오</h3>
-          {portfolios.length ? (
-            <a href={portfolios[0].url} target="_blank" rel="noopener noreferrer" style={{ color: "#3182f6", textDecoration: "underline" }}>{portfolios[0].name}</a>
-          ) : (
-            <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
-          )}
-        </div>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#444' }}>수상/기타</h3>
-          {certificates.length ? (
-            <div>{certificates[0].name} 외 {certificates.length - 1}건</div>
-          ) : (
-            <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>-</div>
-          )}
-        </div>
       </section>
 
-      {/* 나의 자격증 (스킬/주특기 섹터를 자격증으로 변경) */}
+      {/* 하단 상세 섹션 순서 재배치: 자기소개, 경력, 학력, 나의 자격증, 경험/활동/교육, 자격/어학/수상, 포트폴리오 및 기타문서 */}
+      {/* 자기소개 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>나의 자격증</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => certificates.length ? handleEdit("자격증") : handleAdd("자격증")}
-          >
-            {certificates.length ? "수정하기" : "추가하기"}
-          </button>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>자기소개</h2>
         </div>
-        {certificates.length ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            {certificates.map((c: CertificateType, i: number) => (
-              <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 16, padding: "6px 16px", fontSize: 15 }}>{c.name}</span>
-            ))}
-          </div>
+        {selfIntro ? (
+          <div style={{ color: "#444", fontSize: 16, whiteSpace: "pre-line" }}>{selfIntro}</div>
         ) : (
-          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자격증 정보를 입력해주세요.</div>
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자기소개를 입력해주세요.</div>
         )}
       </section>
-
       {/* 경력 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>경력</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => career.length ? handleEdit("경력") : handleAdd("경력")}
-          >
-            {career.length ? "수정하기" : "추가하기"}
-          </button>
         </div>
         {career.length ? (
           career.map((c: CareerType, i: number) => (
@@ -379,17 +396,10 @@ export default function MySpecPage() {
           <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>경력 정보를 입력해주세요.</div>
         )}
       </section>
-
       {/* 학력 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>학력</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => education.length ? handleEdit("학력") : handleAdd("학력")}
-          >
-            {education.length ? "수정하기" : "추가하기"}
-          </button>
         </div>
         {education.length ? (
           education.map((e: EducationType, i: number) => (
@@ -402,17 +412,25 @@ export default function MySpecPage() {
           <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>학력 정보를 입력해주세요.</div>
         )}
       </section>
-
+      {/* 나의 자격증 */}
+      <section style={{ marginTop: 32 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>나의 자격증</h2>
+        </div>
+        {certificates.length ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            {certificates.map((c: CertificateType, i: number) => (
+              <span key={i} style={{ background: "#e3f0ff", color: "#3182f6", borderRadius: 16, padding: "6px 16px", fontSize: 15 }}>{c.name}</span>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자격증 정보를 입력해주세요.</div>
+        )}
+      </section>
       {/* 경험/활동/교육 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>경험/활동/교육</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => experiences.length ? handleEdit("경험/활동/교육") : handleAdd("경험/활동/교육")}
-          >
-            {experiences.length ? "수정하기" : "추가하기"}
-          </button>
         </div>
         {experiences.length ? (
           experiences.map((exp: ExperienceType, i: number) => (
@@ -425,17 +443,10 @@ export default function MySpecPage() {
           <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>경험/활동/교육 정보를 입력해주세요.</div>
         )}
       </section>
-
       {/* 자격/어학/수상 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>자격/어학/수상</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => certificates.length ? handleEdit("자격/어학/수상") : handleAdd("자격/어학/수상")}
-          >
-            {certificates.length ? "수정하기" : "추가하기"}
-          </button>
         </div>
         {certificates.length ? (
           certificates.map((c: CertificateType, i: number) => (
@@ -447,17 +458,10 @@ export default function MySpecPage() {
           <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자격/어학/수상 정보를 입력해주세요.</div>
         )}
       </section>
-
-      {/* 포트폴리오 */}
+      {/* 포트폴리오 및 기타문서 */}
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>포트폴리오 및 기타문서</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => portfolios.length ? handleEdit("포트폴리오") : handleAdd("포트폴리오")}
-          >
-            {portfolios.length ? "수정하기" : "추가하기"}
-          </button>
         </div>
         {portfolios.length ? (
           portfolios.map((p: PortfolioType, i: number) => (
@@ -470,69 +474,106 @@ export default function MySpecPage() {
         )}
       </section>
 
-      {/* 자기소개 */}
-      <section style={{ marginTop: 32 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>자기소개</h2>
-          <button
-            style={{ ...btnStyle, marginTop: 12 }}
-            onClick={() => selfIntro ? handleEdit("자기소개") : handleAdd("자기소개")}
-          >
-            {selfIntro ? "수정하기" : "추가하기"}
-          </button>
-        </div>
-        {selfIntro ? (
-          <div style={{ color: "#444", fontSize: 16, whiteSpace: "pre-line" }}>{selfIntro}</div>
-        ) : (
-          <div style={{ color: "#bbb", fontSize: 16, fontWeight: 700 }}>자기소개를 입력해주세요.</div>
-        )}
-      </section>
-
-      {/* 모달 렌더링 */}
-      <Modal open={modalOpen} onClose={()=>setModalOpen(false)}>
-        {modalType==='profile' && editProfile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 18 }}>프로필 수정</div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handlePhotoChange} />
-              <div style={{ cursor: 'pointer' }} onClick={()=>fileInputRef.current?.click()}>
-                {editProfile.photo ? <Image src={editProfile.photo} alt="증명사진" width={80} height={80} style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid #e3e3e3' }} /> : <div style={{ width: 80, height: 80, background: '#f0f0f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontSize: 16, border: '2px solid #e3e3e3' }}>사진 없음</div>}
-              </div>
-            </div>
-            <input name="name" value={editProfile.name} onChange={handleEditChange} placeholder="닉네임" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <input name="birth" value={editProfile.birth} onChange={handleEditChange} placeholder="생년월일 (예: 1995-01-01)" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <input name="homeAddress" value={editProfile.homeAddress} onChange={handleEditChange} placeholder="집 주소" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <input name="workAddress" value={editProfile.workAddress} onChange={handleEditChange} placeholder="회사 주소" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <input name="interestAddress" value={editProfile.interestAddress} onChange={handleEditChange} placeholder="관심 지역" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <textarea name="selfIntro" value={editProfile.selfIntro} onChange={handleEditChange} placeholder="자기소개" style={{ padding: 8, borderRadius: 8, border: '1px solid #eee', minHeight: 60 }} />
-            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleModalSave}>저장</button>
+      {/* 경력, 학력, 경험, 자격증, 포트폴리오 모달 */}
+      <Modal open={!!editModal} onClose={()=>setEditModal(null)}>
+        {editModal?.type === '경력' && (
+          <div style={{ color: '#444', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>경력 추가</div>
+            <select name="job" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }}>
+              <option value="">직무 선택</option>
+              <option value="백엔드">백엔드</option>
+              <option value="프론트엔드">프론트엔드</option>
+              <option value="데이터">데이터</option>
+              <option value="기획">기획</option>
+              <option value="디자인">디자인</option>
+              <option value="기타">기타</option>
+            </select>
+            <input name="company" placeholder="회사명" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="team" placeholder="팀/부서" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="period" placeholder="근무기간" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <textarea name="desc" placeholder="설명" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee', minHeight: 40 }} />
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={()=>setEditModal(null)}>저장</button>
           </div>
         )}
-        {modalType==='job' && editProfile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 18 }}>관심 직무/업무 수정</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {editProfile.jobInterests?.map((job, i) => (
-                <span key={i} style={{ background: '#f9e7ff', color: '#a14ee6', borderRadius: 12, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }} onClick={()=>handleTagRemove('jobInterests',i)}>{job} ×</span>
-              ))}
-            </div>
-            <input type="text" placeholder="관심 직무 추가" onKeyDown={e=>{if(e.key==='Enter'){handleTagAdd('jobInterests',(e.target as HTMLInputElement).value);(e.target as HTMLInputElement).value='';}}} style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleModalSave}>저장</button>
+        {editModal?.type === '학력' && (
+          <div style={{ color: '#444', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>학력 추가</div>
+            <select name="school" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }}>
+              <option value="">대학교 선택</option>
+              <option value="서울대학교">서울대학교</option>
+              <option value="연세대학교">연세대학교</option>
+              <option value="고려대학교">고려대학교</option>
+              <option value="한양대학교">한양대학교</option>
+              <option value="기타">기타</option>
+            </select>
+            <input name="major" placeholder="전공" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="period" placeholder="재학기간" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="location" placeholder="위치" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={()=>setEditModal(null)}>저장</button>
           </div>
         )}
-        {modalType==='cert' && editProfile && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ textAlign: 'center', fontWeight: 600, fontSize: 18 }}>관심 자격증 수정</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {editProfile.certInterests?.map((cert, i) => (
-                <span key={i} style={{ background: '#e3f0ff', color: '#3182f6', borderRadius: 12, padding: '4px 12px', fontSize: 14, cursor: 'pointer' }} onClick={()=>handleTagRemove('certInterests',i)}>{cert} ×</span>
-              ))}
+        {editModal?.type === '자격증' && (
+          <div style={{ color: '#444', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontWeight: 700, fontSize: 18 }}>자격증 추가</div>
+            <input name="search" placeholder="자격증명 검색" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <div style={{ maxHeight: 120, overflowY: 'auto', border: '1px solid #eee', borderRadius: 8, padding: 8 }}>
+              {/* 예시: 검색 결과 리스트 */}
+              <div style={{ padding: 6, cursor: 'pointer' }}>정보처리기사</div>
+              <div style={{ padding: 6, cursor: 'pointer' }}>SQLD</div>
+              <div style={{ padding: 6, cursor: 'pointer' }}>ADsP</div>
+              <div style={{ padding: 6, cursor: 'pointer' }}>컴퓨터활용능력 1급</div>
+              <div style={{ padding: 6, cursor: 'pointer' }}>기타</div>
             </div>
-            <input type="text" placeholder="관심 자격증 추가" onKeyDown={e=>{if(e.key==='Enter'){handleTagAdd('certInterests',(e.target as HTMLInputElement).value);(e.target as HTMLInputElement).value='';}}} style={{ padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
-            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleModalSave}>저장</button>
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={()=>setEditModal(null)}>저장</button>
           </div>
         )}
       </Modal>
+
+      {/* 프로필 수정 팝업: 닉네임, 자기소개, 집/회사/관심지역(자동완성) */}
+      {modalType==='profile' && editProfile && (
+        <Modal open={modalOpen} onClose={()=>setModalOpen(false)}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, color: '#444' }}>
+            <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 18 }}>프로필 수정</div>
+            <input name="name" value={editProfile.name} onChange={handleEditChange} placeholder="닉네임" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <textarea name="selfIntro" value={editProfile.selfIntro} onChange={handleEditChange} placeholder="자기소개" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee', minHeight: 60 }} />
+            <input name="homeAddress" value={editProfile.homeAddress} placeholder="집 주소" readOnly onClick={()=>setShowDongModal('home')} style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', cursor: 'pointer' }} />
+            <input name="workAddress" value={editProfile.workAddress} placeholder="회사 주소" readOnly onClick={()=>setShowDongModal('work')} style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', cursor: 'pointer' }} />
+            <input name="interestAddress" value={editProfile.interestAddress} placeholder="관심 지역" readOnly onClick={()=>setShowDongModal('interest')} style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee', background: '#f7f7f9', cursor: 'pointer' }} />
+            <button style={{ ...btnStyle, marginTop: 8, display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }} onClick={handleModalSave}>저장</button>
+          </div>
+        </Modal>
+      )}
+
+      {/* 동 자동완성 모달 */}
+      {showDongModal && (
+        <Modal open={!!showDongModal} onClose={()=>setShowDongModal(false)}>
+          <div style={{ minWidth: 320, color: '#444' }}>
+            <input
+              value={dongKeyword}
+              onChange={handleDongInput}
+              placeholder="동명을 입력하세요"
+              style={{ width: '100%', padding: 12, fontSize: 16, borderRadius: 8, border: '1px solid #eee', marginBottom: 8 }}
+            />
+            <ul style={{ maxHeight: 200, overflowY: 'auto', margin: 0, padding: 0 }}>
+              {dongList.map((dong, idx) => (
+                <li
+                  key={dong.code || idx}
+                  onClick={() => handleDongSelect(dong)}
+                  style={{ padding: 12, cursor: 'pointer', borderBottom: '1px solid #f0f0f0', display: 'flex', alignItems: 'center' }}
+                >
+                  <span style={{ fontWeight: 600 }}>{dong.name}</span>
+                  {dong.city && (
+                    <span style={{ color: '#888', fontSize: 13, marginLeft: 8 }}>({dong.city})</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              <button onClick={()=>setShowDongModal(false)} style={{ color: '#3182f6', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>닫기</button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* 반응형 스타일 */}
       <style jsx global>{`

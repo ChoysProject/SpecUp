@@ -85,4 +85,59 @@ public class UserController {
             return ResponseEntity.status(500).body("roles 업데이트 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+
+    // 경력만 부분 업데이트
+    @PatchMapping("/{userId}/careers")
+    public ResponseEntity<?> updateCareers(@PathVariable String userId, @RequestBody List<Career> careers) {
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setCareers(careers);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 학력만 부분 업데이트
+    @PatchMapping("/{userId}/educations")
+    public ResponseEntity<?> updateEducations(@PathVariable String userId, @RequestBody List<Education> educations) {
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setEducations(educations);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 자격증만 부분 업데이트
+    @PatchMapping("/{userId}/certificates")
+    public ResponseEntity<?> updateCertificates(@PathVariable String userId, @RequestBody List<Certificate> certificates) {
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setCertificates(certificates);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 경험만 부분 업데이트
+    @PatchMapping("/{userId}/experiences")
+    public ResponseEntity<?> updateExperiences(@PathVariable String userId, @RequestBody List<Experience> experiences) {
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setExperiences(experiences);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 포트폴리오만 부분 업데이트
+    @PatchMapping("/{userId}/portfolios")
+    public ResponseEntity<?> updatePortfolios(@PathVariable String userId, @RequestBody List<Portfolio> portfolios) {
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setPortfolios(portfolios);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
 } 
