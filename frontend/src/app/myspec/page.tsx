@@ -380,6 +380,12 @@ export default function MySpecPage() {
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>경력</h2>
+          <button
+            style={{ ...btnStyle, marginTop: 12 }}
+            onClick={() => career.length ? handleEdit("경력") : handleAdd("경력")}
+          >
+            {career.length ? "수정하기" : "추가하기"}
+          </button>
         </div>
         {career.length ? (
           career.map((c: CareerType, i: number) => (
@@ -400,6 +406,12 @@ export default function MySpecPage() {
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>학력</h2>
+          <button
+            style={{ ...btnStyle, marginTop: 12 }}
+            onClick={() => education.length ? handleEdit("학력") : handleAdd("학력")}
+          >
+            {education.length ? "수정하기" : "추가하기"}
+          </button>
         </div>
         {education.length ? (
           education.map((e: EducationType, i: number) => (
@@ -416,6 +428,12 @@ export default function MySpecPage() {
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>나의 자격증</h2>
+          <button
+            style={{ ...btnStyle, marginTop: 12 }}
+            onClick={() => certificates.length ? handleEdit("자격증") : handleAdd("자격증")}
+          >
+            {certificates.length ? "수정하기" : "추가하기"}
+          </button>
         </div>
         {certificates.length ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -431,6 +449,12 @@ export default function MySpecPage() {
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>경험/활동/교육</h2>
+          <button
+            style={{ ...btnStyle, marginTop: 12 }}
+            onClick={() => experiences.length ? handleEdit("경험/활동/교육") : handleAdd("경험/활동/교육")}
+          >
+            {experiences.length ? "수정하기" : "추가하기"}
+          </button>
         </div>
         {experiences.length ? (
           experiences.map((exp: ExperienceType, i: number) => (
@@ -447,6 +471,12 @@ export default function MySpecPage() {
       <section style={{ marginTop: 32 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 12, color: '#444' }}>자격/어학/수상</h2>
+          <button
+            style={{ ...btnStyle, marginTop: 12 }}
+            onClick={() => certificates.length ? handleEdit("자격/어학/수상") : handleAdd("자격/어학/수상")}
+          >
+            {certificates.length ? "수정하기" : "추가하기"}
+          </button>
         </div>
         {certificates.length ? (
           certificates.map((c: CertificateType, i: number) => (
