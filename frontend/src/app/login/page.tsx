@@ -317,7 +317,7 @@ export default function LoginPage() {
             걱정마세요! 여러분의 활동은 SNS에 노출되지 않습니다.
           </div>
         </div>
-      </div>
+      </div>  
     </div>
   );
 }
