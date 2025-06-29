@@ -1,4 +1,5 @@
 'use client';
+import React from "react";
 
 import { useState, useEffect } from "react";
 import { FaBell, FaUserCircle, FaSearch, FaClipboardList, FaFileAlt, FaChartLine, FaCertificate, FaFireAlt, FaChartBar, FaComments, FaLaptopCode, FaCalculator, FaGlobeAsia, FaPaintBrush, FaBuilding, FaChalkboardTeacher, FaPlus } from "react-icons/fa";
@@ -71,6 +72,24 @@ const studyFieldIcons = [
   { field: "교육", icon: <FaChalkboardTeacher color="#3182f6" size={22} /> },
 ];
 
+// 대화방 인기 예시 데이터 (실제 API 연동 전 임시)
+const popularChatRooms = [
+  { roomId: "1", title: "백엔드 개발자방", field: "IT/개발", createdBy: "홍길동" },
+  { roomId: "2", title: "정보처리기사 합격방", field: "IT/개발", createdBy: "김자격" },
+  { roomId: "3", title: "전산회계1급 준비방", field: "회계/금융", createdBy: "이회계" },
+  { roomId: "4", title: "TOEIC 고득점방", field: "어학", createdBy: "박영어" },
+];
+
+// 분야별 이모티콘 매핑
+const fieldIcons: Record<string, JSX.Element> = {
+  "IT/개발": <FaLaptopCode color="#3182f6" size={28} style={{ marginRight: 10 }} />,
+  "회계/금융": <FaCalculator color="#3182f6" size={28} style={{ marginRight: 10 }} />,
+  "어학": <FaGlobeAsia color="#3182f6" size={28} style={{ marginRight: 10 }} />,
+  "디자인": <FaPaintBrush color="#3182f6" size={28} style={{ marginRight: 10 }} />,
+  "건설/기계": <FaBuilding color="#3182f6" size={28} style={{ marginRight: 10 }} />,
+  "교육": <FaChalkboardTeacher color="#3182f6" size={28} style={{ marginRight: 10 }} />,
+};
+
 export default function MainPage() {
   const [bannerIdx, setBannerIdx] = useState(0);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -84,6 +103,11 @@ export default function MainPage() {
   const [fieldPopupOpen, setFieldPopupOpen] = useState(false);
   const [recruitPopupOpen, setRecruitPopupOpen] = useState(false);
   const router = useRouter();
+  const [chatScroll, setChatScroll] = useState(0);
+  const maxVisible = 10;
+  const visibleRooms = popularChatRooms.slice(chatScroll, chatScroll + maxVisible);
+  const canScrollLeft = chatScroll > 0;
+  const canScrollRight = chatScroll + maxVisible < popularChatRooms.length;
 
   // 배너 자동 전환 (3초)
   useEffect(() => {
@@ -283,41 +307,57 @@ export default function MainPage() {
         </div>
       </div>
 
-      {/* 소셜 대화방 & 자격증 소개 섹터 */}
-      <div style={{ margin: "64px 0 32px 0", padding: "0 20px" }}>
-        <div style={{ display: "flex", gap: 24, marginBottom: 24, flexWrap: 'wrap' }}>
-          {/* IT 대화방 */}
-          <div style={{ display: 'flex', alignItems: 'center', background: '#e3f0ff', borderRadius: 18, padding: '18px 28px', flex: 1, minWidth: 260, maxWidth: 400 }}>
-            <img src="/images/IT.jpg" alt="IT 대화방" style={{ width: 80, height: 80, borderRadius: 18, background: "#e3f0ff", marginRight: 20, objectFit: 'cover' }} />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontWeight: 700, fontSize: 18, color: "#3182f6" }}>IT 대화방</div>
-              <div style={{ fontSize: 14, color: "#888", marginBottom: 8 }}>IT/개발 자격증 실시간 소통!</div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button style={{ background: "#3182f6", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", fontSize: 15 }}>
-                  입장하기
-                </button>
-              </div>
-            </div>
-          </div>
-          {/* 금융 소셜방 */}
-          <div style={{ display: 'flex', alignItems: 'center', background: '#e3f0ff', borderRadius: 18, padding: '18px 28px', flex: 1, minWidth: 260, maxWidth: 400 }}>
-            <img src="/images/money.jpg" alt="금융 소셜방" style={{ width: 80, height: 80, borderRadius: 18, background: "#e3f0ff", marginRight: 20, objectFit: 'cover' }} />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontWeight: 700, fontSize: 18, color: "#3182f6" }}>금융 소셜방</div>
-              <div style={{ fontSize: 14, color: "#888", marginBottom: 8 }}>회계/금융 자격증 정보와 실시간 소통!</div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button style={{ background: "#3182f6", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", fontSize: 15 }}>
-                  입장하기
-                </button>
-              </div>
-            </div>
-          </div>
+      {/* 지금 핫한 단체대화방 섹션 */}
+      <div style={{ margin: "0 0 64px 0" }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: "0 0 18px 20px" }}>
+          <span style={{ fontWeight: 700, fontSize: 19, color: '#3182f6', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span role="img" aria-label="fire" style={{ fontSize: 22, marginRight: 2 }}>🔥</span>지금 핫한 단체대화방
+          </span>
+          <button
+            onClick={() => router.push('/chatrooms')}
+            style={{ background: '#3182f6', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15, marginLeft: 'auto', cursor: 'pointer' }}
+          >
+            전체 대화방 보기
+          </button>
         </div>
-        <div style={{ background: "#f7faff", borderRadius: 14, padding: "22px 20px", marginTop: 10 }}>
-          <div style={{ fontWeight: 700, fontSize: 17, color: "#3182f6", marginBottom: 8 }}>자격증 소개</div>
-          <div style={{ fontSize: 14, color: "#444" }}>
-            다양한 분야의 자격증 정보를 한눈에!  <br />취득 방법, 시험 일정, 합격 꿀팁까지 모두 확인해보세요.
+        <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab' }}>
+          {popularChatRooms.slice(0, 10).map(room => (
+            <div key={room.roomId} style={{ minWidth: 260, maxWidth: 340, background: "#e3f0ff", borderRadius: 18, padding: "22px 28px", boxShadow: "0 2px 8px rgba(49,130,246,0.10)", marginBottom: 18, display: 'flex', alignItems: 'center', gap: 18, border: "1px solid #c7e0ff" }}>
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                  {fieldIcons[room.field]}
+                  <span style={{ fontWeight: 700, fontSize: 18, color: "#3182f6" }}>{room.title}</span>
+                </div>
+                <div style={{ fontSize: 14, color: "#888", marginBottom: 8 }}>{room.field} | {room.createdBy}</div>
+                <button onClick={() => router.push(`/chatroom/${room.roomId}`)} style={{ background: "#3182f6", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", fontSize: 15, alignSelf: 'flex-start' }}>입장</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 커뮤니티 게시판 섹션 (이전 직무, 업종별 커뮤니티 게시판) */}
+      <div style={{ margin: "0 0 64px 0", padding: '0 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+          <span style={{ fontWeight: 700, fontSize: 19, color: '#3182f6' }}>커뮤니티 게시판</span>
+          <button
+            onClick={() => router.push('/communities')}
+            style={{ background: '#3182f6', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15, marginLeft: 'auto', cursor: 'pointer' }}
+          >
+            전체 게시판 보기
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', overflowX: 'auto', cursor: 'grab' }}>
+          {/* 예시 커뮤니티 카드, 추후 동적 구현 */}
+          <div style={{ minWidth: 220, maxWidth: 300, background: '#f7faff', borderRadius: 14, padding: '18px 16px', boxShadow: '0 2px 8px rgba(49,130,246,0.06)', border: '1px solid #e3f0ff', marginBottom: 8 }}>
+            <div style={{ fontWeight: 600, fontSize: 16, color: '#3182f6', marginBottom: 6 }}>IT/개발 커뮤니티</div>
+            <div style={{ fontSize: 14, color: '#888' }}>IT/개발 직무, 자격증 정보와 실시간 소통!</div>
           </div>
+          <div style={{ minWidth: 220, maxWidth: 300, background: '#f7faff', borderRadius: 14, padding: '18px 16px', boxShadow: '0 2px 8px rgba(49,130,246,0.06)', border: '1px solid #e3f0ff', marginBottom: 8 }}>
+            <div style={{ fontWeight: 600, fontSize: 16, color: '#3182f6', marginBottom: 6 }}>회계/금융 커뮤니티</div>
+            <div style={{ fontSize: 14, color: '#888' }}>회계/금융 직무, 자격증 정보와 실시간 소통!</div>
+          </div>
+          {/* ...추가 커뮤니티 카드 */}
         </div>
       </div>
 

@@ -182,6 +182,11 @@ export default function LoginPage() {
               color: "#000",
             }}
             disabled={showPassword}
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                handleEmailContinue();
+              }
+            }}
           />
           {showPassword && (
             <>
