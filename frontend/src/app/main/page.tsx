@@ -307,58 +307,128 @@ export default function MainPage() {
         </div>
       </div>
 
-      {/* 지금 핫한 단체대화방 섹션 */}
-      <div style={{ margin: "0 0 64px 0" }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: "0 0 18px 20px" }}>
-          <span style={{ fontWeight: 700, fontSize: 19, color: '#3182f6', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span role="img" aria-label="fire" style={{ fontSize: 22, marginRight: 2 }}>🔥</span>지금 핫한 단체대화방
-          </span>
-          <button
-            onClick={() => router.push('/chatrooms')}
-            style={{ background: '#3182f6', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15, marginLeft: 'auto', cursor: 'pointer' }}
-          >
-            전체 대화방 보기
-          </button>
-        </div>
-        <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab' }}>
-          {popularChatRooms.slice(0, 10).map(room => (
-            <div key={room.roomId} style={{ minWidth: 260, maxWidth: 340, background: "#e3f0ff", borderRadius: 18, padding: "22px 28px", boxShadow: "0 2px 8px rgba(49,130,246,0.10)", marginBottom: 18, display: 'flex', alignItems: 'center', gap: 18, border: "1px solid #c7e0ff" }}>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                  {fieldIcons[room.field]}
-                  <span style={{ fontWeight: 700, fontSize: 18, color: "#3182f6" }}>{room.title}</span>
-                </div>
-                <div style={{ fontSize: 14, color: "#888", marginBottom: 8 }}>{room.field} | {room.createdBy}</div>
-                <button onClick={() => router.push(`/chatroom/${room.roomId}`)} style={{ background: "#3182f6", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontWeight: 500, cursor: "pointer", fontSize: 15, alignSelf: 'flex-start' }}>입장</button>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* 제목 + 버튼 한 줄 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: "0 0 18px 20px" }}>
+        <span style={{ fontWeight: 700, fontSize: 19, color: '#3182f6' }}>지금 핫한 단체대화방</span>
+        <button
+          onClick={() => router.push('/chatrooms')}
+          style={{ background: '#3182f6', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}
+        >
+          전체 대화방 보기
+        </button>
       </div>
 
-      {/* 커뮤니티 게시판 섹션 (이전 직무, 업종별 커뮤니티 게시판) */}
-      <div style={{ margin: "0 0 64px 0", padding: '0 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
-          <span style={{ fontWeight: 700, fontSize: 19, color: '#3182f6' }}>커뮤니티 게시판</span>
-          <button
-            onClick={() => router.push('/communities')}
-            style={{ background: '#3182f6', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15, marginLeft: 'auto', cursor: 'pointer' }}
-          >
-            전체 게시판 보기
-          </button>
-        </div>
-        <div style={{ display: 'flex', gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', overflowX: 'auto', cursor: 'grab' }}>
-          {/* 예시 커뮤니티 카드, 추후 동적 구현 */}
-          <div style={{ minWidth: 220, maxWidth: 300, background: '#f7faff', borderRadius: 14, padding: '18px 16px', boxShadow: '0 2px 8px rgba(49,130,246,0.06)', border: '1px solid #e3f0ff', marginBottom: 8 }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: '#3182f6', marginBottom: 6 }}>IT/개발 커뮤니티</div>
-            <div style={{ fontSize: 14, color: '#888' }}>IT/개발 직무, 자격증 정보와 실시간 소통!</div>
+      {/* 카드 리스트는 그 아래에! */}
+      <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab' }}>
+        {popularChatRooms.slice(0, 10).map(room => (
+          <div key={room.roomId} style={{ minWidth: 220, background: "#fff", borderRadius: 14, boxShadow: "0 2px 8px rgba(49,130,246,0.08)", padding: 0, overflow: "hidden", border: "1px solid #e3f0ff" }}>
+            <img src={room.img} alt={room.title} style={{ width: "100%", height: 100, objectFit: "cover" }} />
+            <div style={{ padding: "12px 14px" }}>
+              <div style={{ fontWeight: 600, fontSize: 15, color: "#3182f6", marginBottom: 4 }}>{room.title}</div>
+              <div style={{ fontSize: 13, color: "#444", marginBottom: 2 }}>{room.company}</div>
+              <div style={{ fontSize: 12, color: "#888" }}>{room.desc}</div>
+            </div>
           </div>
-          <div style={{ minWidth: 220, maxWidth: 300, background: '#f7faff', borderRadius: 14, padding: '18px 16px', boxShadow: '0 2px 8px rgba(49,130,246,0.06)', border: '1px solid #e3f0ff', marginBottom: 8 }}>
-            <div style={{ fontWeight: 600, fontSize: 16, color: '#3182f6', marginBottom: 6 }}>회계/금융 커뮤니티</div>
-            <div style={{ fontSize: 14, color: '#888' }}>회계/금융 직무, 자격증 정보와 실시간 소통!</div>
+        ))}
+      </div>
+
+      {/* 커뮤니티 게시판 제목 + 버튼 */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          margin: '0 0 18px 20px', // 왼쪽 여백, 아래 여백
+        }}
+      >
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 19,
+            color: '#3182f6',
+            lineHeight: '1.2',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          커뮤니티 게시판
+        </span>
+        <button
+          onClick={() => router.push('/communities')}
+          style={{
+            background: '#3182f6',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '7px 18px',
+            fontWeight: 600,
+            fontSize: 15,
+            cursor: 'pointer',
+            lineHeight: '1.2',
+            boxShadow: '0 2px 8px rgba(49,130,246,0.08)',
+            transition: 'background 0.2s',
+          }}
+        >
+          전체 게시판 보기
+        </button>
+      </div>
+
+      {/* 커뮤니티 카드 리스트 */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 24,
+          flexWrap: 'wrap',
+          justifyContent: 'flex-start',
+          padding: '0 0 10px 20px',
+        }}
+      >
+        {/* 예시 커뮤니티 카드 */}
+        <div
+          style={{
+            minWidth: 220,
+            maxWidth: 300,
+            background: '#f7faff',
+            borderRadius: 14,
+            padding: '18px 16px',
+            boxShadow: '0 2px 8px rgba(49,130,246,0.06)',
+            border: '1px solid #e3f0ff',
+            marginBottom: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ fontWeight: 600, fontSize: 16, color: '#3182f6', marginBottom: 6 }}>
+            IT/개발 커뮤니티
           </div>
-          {/* ...추가 커뮤니티 카드 */}
+          <div style={{ fontSize: 14, color: '#888' }}>
+            IT/개발 직무, 자격증 정보와 실시간 소통!
+          </div>
         </div>
+        <div
+          style={{
+            minWidth: 220,
+            maxWidth: 300,
+            background: '#f7faff',
+            borderRadius: 14,
+            padding: '18px 16px',
+            boxShadow: '0 2px 8px rgba(49,130,246,0.06)',
+            border: '1px solid #e3f0ff',
+            marginBottom: 8,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ fontWeight: 600, fontSize: 16, color: '#3182f6', marginBottom: 6 }}>
+            회계/금융 커뮤니티
+          </div>
+          <div style={{ fontSize: 14, color: '#888' }}>
+            회계/금융 직무, 자격증 정보와 실시간 소통!
+          </div>
+        </div>
+        {/* ...추가 커뮤니티 카드 */}
       </div>
 
       {/* 현재 뜨고 있는 채용 배너 (가로 슬라이드) */}
