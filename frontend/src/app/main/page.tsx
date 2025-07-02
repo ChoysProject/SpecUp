@@ -308,8 +308,8 @@ export default function MainPage() {
       </div>
 
       {/* 제목 + 버튼 한 줄 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: "0 0 18px 20px" }}>
-        <span style={{ fontWeight: 700, fontSize: 19, color: '#3182f6' }}>지금 핫한 단체대화방</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: "0 0 32px 20px" }}>
+        <span style={{ fontWeight: 700, fontSize: 17, color: '#3182f6' }}>지금 핫한 단체대화방</span>
         <button
           onClick={() => router.push('/chatrooms')}
           style={{ background: '#3182f6', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}
@@ -319,7 +319,7 @@ export default function MainPage() {
       </div>
 
       {/* 카드 리스트는 그 아래에! */}
-      <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab' }}>
+      <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab', marginBottom: 32 }}>
         {popularChatRooms.slice(0, 10).map(room => (
           <div key={room.roomId} style={{ minWidth: 220, background: "#fff", borderRadius: 14, boxShadow: "0 2px 8px rgba(49,130,246,0.08)", padding: 0, overflow: "hidden", border: "1px solid #e3f0ff" }}>
             <img src={room.img} alt={room.title} style={{ width: "100%", height: 100, objectFit: "cover" }} />
@@ -338,13 +338,13 @@ export default function MainPage() {
           display: 'flex',
           alignItems: 'center',
           gap: 12,
-          margin: '0 0 18px 20px', // 왼쪽 여백, 아래 여백
+          margin: '0 0 32px 20px', // 왼쪽 여백, 아래 여백
         }}
       >
         <span
           style={{
             fontWeight: 700,
-            fontSize: 19,
+            fontSize: 17,
             color: '#3182f6',
             lineHeight: '1.2',
             display: 'flex',
@@ -381,6 +381,7 @@ export default function MainPage() {
           flexWrap: 'wrap',
           justifyContent: 'flex-start',
           padding: '0 0 10px 20px',
+          marginBottom: 32,
         }}
       >
         {/* 예시 커뮤니티 카드 */}
@@ -433,7 +434,7 @@ export default function MainPage() {
 
       {/* 현재 뜨고 있는 채용 배너 (가로 슬라이드) */}
       <div style={{ margin: "0 0 64px 0" }}>
-        <div style={{ fontWeight: 600, fontSize: 17, margin: "0 0 18px 20px", color: '#3182f6' }}>현재 뜨고 있는 채용</div>
+        <div style={{ fontWeight: 600, fontSize: 17, margin: "0 0 32px 20px", color: '#3182f6' }}>현재 뜨고 있는 채용</div>
         <div style={{ display: "flex", overflowX: "auto", gap: 18, padding: "0 0 10px 20px" }}>
           {recruitBanners.map(banner => (
             <div key={banner.title} style={{ minWidth: 220, background: "#fff", borderRadius: 14, boxShadow: "0 2px 8px rgba(49,130,246,0.08)", padding: 0, overflow: "hidden", border: "1px solid #e3f0ff" }}>
