@@ -319,7 +319,7 @@ export default function MainPage() {
       </div>
 
       {/* 카드 리스트는 그 아래에! */}
-      <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab', marginBottom: 32 }}>
+      <div style={{ display: "flex", gap: 24, flexWrap: 'nowrap', justifyContent: 'flex-start', padding: "0 0 10px 20px", overflowX: 'auto', cursor: 'grab', marginBottom: 64 }}>
         {popularChatRooms.slice(0, 10).map(room => (
           <div key={room.roomId} style={{ minWidth: 220, background: "#fff", borderRadius: 14, boxShadow: "0 2px 8px rgba(49,130,246,0.08)", padding: 0, overflow: "hidden", border: "1px solid #e3f0ff" }}>
             <img src={room.img} alt={room.title} style={{ width: "100%", height: 100, objectFit: "cover" }} />
