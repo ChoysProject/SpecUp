@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const CATEGORY_LIST = [
@@ -18,14 +18,43 @@ const dummyPosts = [
   // ...더미 데이터 추가 가능
 ];
 
+const PAGE_SIZE = 7;
+
 export default function CommunitiesPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [page, setPage] = useState(1);
+  const [displayedPosts, setDisplayedPosts] = useState(dummyPosts.slice(0, PAGE_SIZE));
+  const loader = useRef(null);
   const router = useRouter();
 
   // 카테고리별 필터링
   const filteredPosts = selectedCategory === "전체"
     ? dummyPosts
     : dummyPosts.filter(post => post.category === selectedCategory);
+
+  useEffect(() => {
+    setPage(1);
+    setDisplayedPosts(filteredPosts.slice(0, PAGE_SIZE));
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    if (page === 1) return;
+    setDisplayedPosts(filteredPosts.slice(0, PAGE_SIZE * page));
+  }, [page, filteredPosts]);
+
+  // 무한 스크롤 IntersectionObserver
+  useEffect(() => {
+    const observer = new window.IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && displayedPosts.length < filteredPosts.length) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+    if (loader.current) observer.observe(loader.current);
+    return () => { if (loader.current) observer.unobserve(loader.current); };
+  }, [displayedPosts, filteredPosts]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", color: "#181A20", paddingBottom: 80 }}>
@@ -55,11 +84,11 @@ export default function CommunitiesPage() {
       </div>
       {/* 게시판 리스트 */}
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 0" }}>
-        {filteredPosts.length === 0 ? (
+        {displayedPosts.length === 0 ? (
           <div style={{ color: '#888', fontSize: 16, textAlign: 'center', padding: 40 }}>해당 카테고리의 게시글이 없습니다.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {filteredPosts.map(post => (
+            {displayedPosts.map(post => (
               <div key={post.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(49,130,246,0.08)', border: '1px solid #e3f0ff', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ fontWeight: 700, fontSize: 17, color: '#3182f6' }}>{post.title}</div>
                 <div style={{ fontSize: 14, color: '#888' }}>{post.category} | {post.author} | {post.date}</div>
@@ -68,6 +97,27 @@ export default function CommunitiesPage() {
             ))}
           </div>
         )}
+        {/* 무한 스크롤 로더 */}
+        <div ref={loader} style={{ height: 30 }} />
+        {/* 하단 게시글 쓰기 버튼 */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 32 }}>
+          <button
+            onClick={() => router.push("/communities/write")}
+            style={{
+              background: "#3182f6",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "12px 32px",
+              fontWeight: 600,
+              fontSize: 17,
+              cursor: "pointer",
+              transition: "background 0.2s"
+            }}
+          >
+            게시글 쓰기
+          </button>
+        </div>
       </div>
     </div>
   );
