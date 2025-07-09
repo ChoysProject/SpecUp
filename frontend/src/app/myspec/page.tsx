@@ -53,6 +53,9 @@ export default function MySpecPage() {
   const [showDongModal, setShowDongModal] = useState<false | 'home' | 'work' | 'interest'>(false);
   const [dongKeyword, setDongKeyword] = useState('');
   const [dongList, setDongList] = useState<any[]>([]);
+  // 자격증 입력값 상태 추가
+  const [certInput, setCertInput] = useState('');
+  const [selectedCert, setSelectedCert] = useState<string | null>(null);
 
   // userId 추출 (실제 서비스에서는 JWT decode 필요)
   useEffect(() => {
@@ -129,24 +132,36 @@ export default function MySpecPage() {
     if (!file) return;
     const reader = new FileReader();
     reader.onloadend = () => {
+      // base64 데이터가 editProfile.photo에 반드시 들어가도록 보장
       setEditProfile(prev => prev ? { ...prev, photo: reader.result as string } : prev);
+      // 미리보기용 profile도 즉시 반영(선택적)
+      setProfile(prev => prev ? { ...prev, photo: reader.result as string } : prev);
     };
     reader.readAsDataURL(file);
   };
+
   // 저장(백엔드 반영)
   const handleModalSave = async () => {
     if (!editProfile) return;
     const userId = localStorage.getItem('userId');
     const accessToken = localStorage.getItem('accessToken');
+    if (!userId || !accessToken) {
+      toast.error('로그인이 필요합니다.');
+      router.push('/login');
+      return;
+    }
+    // photoUrl에 base64가 반드시 포함되도록 보장
     const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-      body: JSON.stringify({ ...editProfile, photoUrl: editProfile.photo }),
+      body: JSON.stringify({ ...editProfile, photoUrl: editProfile.photo, certificates }),
     });
     if (res.ok) {
       toast.success('저장 완료!');
       setModalOpen(false);
       fetchProfile();
+    } else if (res.status === 403) {
+      toast.error('권한이 없습니다. (403)');
     } else {
       toast.error('저장 중 오류가 발생했습니다.');
     }
@@ -168,8 +183,55 @@ export default function MySpecPage() {
   };
 
   // 자격증 추가/수정 모달
-  const handleAdd = () => setEditModal({ type: '자격증' });
-  const handleEdit = () => setEditModal({ type: '자격증' });
+  const handleAdd = () => {
+    setCertInput('');
+    setSelectedCert(null);
+    setEditModal({ type: '자격증' });
+  };
+  const handleEdit = () => {
+    setCertInput('');
+    setSelectedCert(null);
+    setEditModal({ type: '자격증' });
+  };
+  // 자격증명 입력 핸들러
+  const handleCertInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCertInput(e.target.value);
+    setSelectedCert(null);
+  };
+  // 자격증명 클릭 시
+  const handleCertSelect = (name: string) => {
+    setCertInput(name);
+    setSelectedCert(name);
+  };
+  // 자격증 저장
+  const handleCertSave = async () => {
+    if (!certInput.trim()) {
+      toast.error('자격증명을 입력 또는 선택하세요.');
+      return;
+    }
+    const userId = localStorage.getItem('userId');
+    const accessToken = localStorage.getItem('accessToken');
+    // 이미 있는 자격증명은 중복 추가 방지
+    const newCerts = certificates.some(c => c.name === certInput.trim())
+      ? certificates
+      : [...certificates, { name: certInput.trim(), date: '', org: '' }];
+    setCertificates(newCerts);
+    setEditModal(null);
+    // 서버에 저장
+    if (profile) {
+      const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ ...profile, photoUrl: profile.photo, certificates: newCerts }),
+      });
+      if (res.ok) {
+        toast.success('자격증 저장 완료!');
+        fetchProfile();
+      } else {
+        toast.error('자격증 저장 중 오류가 발생했습니다.');
+      }
+    }
+  };
 
   // 동 입력 핸들러 (회원가입 페이지와 동일)
   const handleDongInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,16 +316,14 @@ export default function MySpecPage() {
         {editModal?.type === '자격증' && (
           <div style={{ color: '#444', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ fontWeight: 700, fontSize: 18 }}>자격증 추가</div>
-            <input name="search" placeholder="자격증명 검색" style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
+            <input name="search" placeholder="자격증명 검색" value={certInput} onChange={handleCertInputChange} style={{ color: '#444', padding: 8, borderRadius: 8, border: '1px solid #eee' }} />
             <div style={{ maxHeight: 120, overflowY: 'auto', border: '1px solid #eee', borderRadius: 8, padding: 8 }}>
               {/* 예시: 검색 결과 리스트 */}
-              <div style={{ padding: 6, cursor: 'pointer' }}>정보처리기사</div>
-              <div style={{ padding: 6, cursor: 'pointer' }}>SQLD</div>
-              <div style={{ padding: 6, cursor: 'pointer' }}>ADsP</div>
-              <div style={{ padding: 6, cursor: 'pointer' }}>컴퓨터활용능력 1급</div>
-              <div style={{ padding: 6, cursor: 'pointer' }}>기타</div>
+              {['정보처리기사','SQLD','ADsP','컴퓨터활용능력 1급','기타'].map((name) => (
+                <div key={name} style={{ padding: 6, cursor: 'pointer', background: certInput === name ? '#e3f0ff' : undefined, borderRadius: 6 }} onClick={()=>handleCertSelect(name)}>{name}</div>
+              ))}
             </div>
-            <button style={{ ...btnStyle, marginTop: 8 }} onClick={()=>setEditModal(null)}>저장</button>
+            <button style={{ ...btnStyle, marginTop: 8 }} onClick={handleCertSave}>저장</button>
           </div>
         )}
       </Modal>
