@@ -35,4 +35,10 @@ public class BoardController {
     public long countBoards() {
         return boardService.countBoards();
     }
+
+    @PutMapping("/{id}")
+    public Board updateBoard(@PathVariable String id, @RequestBody Board board) {
+        board.setId(id);
+        return boardService.saveBoard(board);
+    }
 } 
