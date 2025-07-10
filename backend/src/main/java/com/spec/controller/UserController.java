@@ -45,6 +45,17 @@ public class UserController {
                 if (user.getRoles() == null) {
                     user.setRoles(java.util.Arrays.asList("ROLE_USER"));
                 }
+                // photoUrl, certificates, selfIntro 등 주요 필드는 프론트에서 값이 없으면 기존 값 유지
+                if (user.getPhotoUrl() == null || user.getPhotoUrl().isEmpty()) {
+                    user.setPhotoUrl(existing.getPhotoUrl());
+                }
+                if (user.getCertificates() == null) {
+                    user.setCertificates(existing.getCertificates());
+                }
+                if (user.getSelfIntro() == null) {
+                    user.setSelfIntro(existing.getSelfIntro());
+                }
+                // 기타 필요한 필드도 동일하게 처리 가능
                 return ResponseEntity.ok(userRepository.save(user));
             })
             .orElse(ResponseEntity.notFound().build());
@@ -67,6 +78,29 @@ public class UserController {
             log.error("Error updating user interests: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    // 자격증만 업데이트
+    @PutMapping("/{userId}/certificates")
+    public ResponseEntity<?> updateCertificates(@PathVariable String userId, @RequestBody List<com.spec.domain.Certificate> certificates) {
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setCertificates(certificates);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // 사진만 업데이트
+    @PutMapping("/{userId}/photo")
+    public ResponseEntity<?> updatePhoto(@PathVariable String userId, @RequestBody Map<String, String> body) {
+        String photoUrl = body.get("photoUrl");
+        return userRepository.findByUserId(userId)
+            .map(user -> {
+                user.setPhotoUrl(photoUrl);
+                return ResponseEntity.ok(userRepository.save(user));
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
 
     // 기존 사용자들의 roles 필드를 업데이트하는 엔드포인트

@@ -17,7 +17,7 @@ export default function CommunityWritePage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim() || !category) {
       setError("모든 항목을 입력해주세요.");
@@ -27,9 +27,22 @@ export default function CommunityWritePage() {
       setError("내용은 500자 이내로 작성해주세요.");
       return;
     }
-    // TODO: 백엔드 연동 및 저장
-    alert("게시글이 등록되었습니다. (백엔드 연동 필요)");
-    router.push("/communities");
+    const nickname = localStorage.getItem('nickname') || '익명';
+    try {
+      const res = await fetch('http://172.20.193.4:8080/api/boards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, category, title, content }),
+      });
+      if (res.ok) {
+        alert("게시글이 등록되었습니다.");
+        router.push("/communities");
+      } else {
+        setError("게시글 등록에 실패했습니다.");
+      }
+    } catch (err) {
+      setError("네트워크 오류가 발생했습니다.");
+    }
   };
 
   return (

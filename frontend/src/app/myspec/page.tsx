@@ -127,15 +127,30 @@ export default function MySpecPage() {
   };
   // 사진 업로드
   const handlePhotoClick = () => { fileInputRef.current?.click(); };
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () => {
-      // base64 데이터가 editProfile.photo에 반드시 들어가도록 보장
-      setEditProfile(prev => prev ? { ...prev, photo: reader.result as string } : prev);
-      // 미리보기용 profile도 즉시 반영(선택적)
-      setProfile(prev => prev ? { ...prev, photo: reader.result as string } : prev);
+    reader.onloadend = async () => {
+      const base64 = reader.result as string;
+      setEditProfile(prev => prev ? { ...prev, photo: base64 } : prev);
+      setProfile(prev => prev ? { ...prev, photo: base64 } : prev);
+      // 파일 선택 즉시 서버에 저장
+      const userId = localStorage.getItem('userId');
+      const accessToken = localStorage.getItem('accessToken');
+      if (userId && accessToken) {
+        const res = await fetch(`http://172.20.193.4:8080/api/users/${userId}/photo`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+          body: JSON.stringify({ photoUrl: base64 }),
+        });
+        if (res.ok) {
+          toast.success('사진이 저장되었습니다!');
+          fetchProfile(); // 최신 데이터 반영
+        } else {
+          toast.error('사진 저장에 실패했습니다.');
+        }
+      }
     };
     reader.readAsDataURL(file);
   };
