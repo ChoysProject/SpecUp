@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/boards")
-@CrossOrigin(origins = "*")
 public class BoardController {
     @Autowired
     private BoardService boardService;

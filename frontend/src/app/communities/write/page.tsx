@@ -33,6 +33,7 @@ export default function CommunityWritePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nickname, category, title, content }),
+        credentials: 'include', // 이 줄 추가
       });
       if (res.ok) {
         alert("게시글이 등록되었습니다.");
