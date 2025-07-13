@@ -3,12 +3,25 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const CATEGORY_LIST = [
-  "전체",
-  "운동/스포츠", "사교/인맥", "인문학/책/글", "아웃도어/여행",
-  "음악/악기", "업종/직무", "문화/공연/축제", "외국/언어",
-  "게임/오락", "공예/만들기", "댄스/무용", "봉사활동",
-  "사진/영상", "자기계발", "스포츠관람", "반려동물",
-  "요리/제조", "차/바이크"
+  { name: "전체", emoji: "🏠" },
+  { name: "운동/스포츠", emoji: "⚽" },
+  { name: "사교/인맥", emoji: "🤝" },
+  { name: "인문학/책/글", emoji: "📚" },
+  { name: "아웃도어/여행", emoji: "🏔️" },
+  { name: "음악/악기", emoji: "🎸" },
+  { name: "업종/직무", emoji: "💼" },
+  { name: "문화/공연/축제", emoji: "🎭" },
+  { name: "외국/언어", emoji: "🌍" },
+  { name: "게임/오락", emoji: "🎮" },
+  { name: "공예/만들기", emoji: "🎨" },
+  { name: "댄스/무용", emoji: "💃" },
+  { name: "봉사활동", emoji: "❤️" },
+  { name: "사진/영상", emoji: "📷" },
+  { name: "자기계발", emoji: "📈" },
+  { name: "스포츠관람", emoji: "🏟️" },
+  { name: "반려동물", emoji: "🐕" },
+  { name: "요리/제조", emoji: "👨‍🍳" },
+  { name: "차/바이크", emoji: "🏍️" }
 ];
 
 const dummyPosts = [
@@ -63,11 +76,11 @@ export default function CommunitiesPage() {
         <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
           {CATEGORY_LIST.map(cat => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              key={cat.name}
+              onClick={() => setSelectedCategory(cat.name)}
               style={{
-                background: selectedCategory === cat ? "#3182f6" : "#e3f0ff",
-                color: selectedCategory === cat ? "#fff" : "#3182f6",
+                background: selectedCategory === cat.name ? "#3182f6" : "#e3f0ff",
+                color: selectedCategory === cat.name ? "#fff" : "#3182f6",
                 border: "none",
                 borderRadius: 8,
                 padding: "8px 18px",
@@ -77,7 +90,8 @@ export default function CommunitiesPage() {
                 transition: "background 0.2s"
               }}
             >
-              {cat}
+              <span style={{ marginRight: 6 }}>{cat.emoji}</span>
+              {cat.name}
             </button>
           ))}
         </div>
