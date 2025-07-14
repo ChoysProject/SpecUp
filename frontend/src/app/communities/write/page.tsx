@@ -3,11 +3,24 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const CATEGORY_LIST = [
-  "운동/스포츠", "사교/인맥", "인문학/책/글", "아웃도어/여행",
-  "음악/악기", "업종/직무", "문화/공연/축제", "외국/언어",
-  "게임/오락", "공예/만들기", "댄스/무용", "봉사활동",
-  "사진/영상", "자기계발", "스포츠관람", "반려동물",
-  "요리/제조", "차/바이크"
+  { label: "운동/스포츠", emoji: "🏃‍♂️" },
+  { label: "사교/인맥", emoji: "🤝" },
+  { label: "인문학/책/글", emoji: "📚" },
+  { label: "아웃도어/여행", emoji: "🌄" },
+  { label: "음악/악기", emoji: "🎵" },
+  { label: "업종/직무", emoji: "💼" },
+  { label: "문화/공연/축제", emoji: "🎭" },
+  { label: "외국/언어", emoji: "🌐" },
+  { label: "게임/오락", emoji: "🎮" },
+  { label: "공예/만들기", emoji: "🎨" },
+  { label: "댄스/무용", emoji: "💃" },
+  { label: "봉사활동", emoji: "🙌" },
+  { label: "사진/영상", emoji: "📷" },
+  { label: "자기계발", emoji: "🚀" },
+  { label: "스포츠관람", emoji: "⚽" },
+  { label: "반려동물", emoji: "🐶" },
+  { label: "요리/제조", emoji: "🍳" },
+  { label: "차/바이크", emoji: "🏍️" }
 ];
 
 export default function CommunityWritePage() {
@@ -72,7 +85,9 @@ export default function CommunityWritePage() {
           >
             <option value="">분야를 선택하세요</option>
             {CATEGORY_LIST.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat.label} value={cat.label}>
+                {cat.emoji} {cat.label}
+              </option>
             ))}
           </select>
         </div>
