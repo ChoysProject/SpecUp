@@ -24,31 +24,37 @@ const CATEGORY_LIST = [
   { name: "차/바이크", emoji: "🏍️" }
 ];
 
-const dummyPosts = [
-  { id: 1, category: "운동/스포츠", title: "배드민턴 같이 하실 분!", author: "홍길동", date: "2024-06-01", content: "공원에서 배드민턴 모임 구해요!" },
-  { id: 2, category: "음악/악기", title: "기타 동호회 모집", author: "김기타", date: "2024-06-02", content: "기타 배우고 싶은 분 환영합니다." },
-  { id: 3, category: "자기계발", title: "자격증 스터디원 구함", author: "이자격", date: "2024-06-03", content: "정보처리기사 스터디 같이 해요." },
-  // ...더미 데이터 추가 가능
-];
-
 const PAGE_SIZE = 7;
 
 export default function CommunitiesPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [page, setPage] = useState(1);
-  const [displayedPosts, setDisplayedPosts] = useState(dummyPosts.slice(0, PAGE_SIZE));
+  const [posts, setPosts] = useState([]);
+  const [displayedPosts, setDisplayedPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const loader = useRef(null);
   const router = useRouter();
 
+  // 게시글 데이터 불러오기 (Spring Boot API 호출)
+  useEffect(() => {
+    setLoading(true);
+    fetch(`http://localhost:8080/api/boards?page=0&size=100`)
+      .then(res => res.json())
+      .then(data => {
+        setPosts(data);
+        setLoading(false);
+      });
+  }, []);
+
   // 카테고리별 필터링
   const filteredPosts = selectedCategory === "전체"
-    ? dummyPosts
-    : dummyPosts.filter(post => post.category === selectedCategory);
+    ? posts
+    : posts.filter((post: any) => post.category === selectedCategory);
 
   useEffect(() => {
     setPage(1);
     setDisplayedPosts(filteredPosts.slice(0, PAGE_SIZE));
-  }, [selectedCategory]);
+  }, [selectedCategory, posts]);
 
   useEffect(() => {
     if (page === 1) return;
@@ -68,6 +74,10 @@ export default function CommunitiesPage() {
     if (loader.current) observer.observe(loader.current);
     return () => { if (loader.current) observer.unobserve(loader.current); };
   }, [displayedPosts, filteredPosts]);
+
+  if (loading) {
+    return <div style={{ textAlign: "center", padding: 40 }}>로딩 중...</div>;
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", color: "#181A20", paddingBottom: 80 }}>
@@ -102,10 +112,24 @@ export default function CommunitiesPage() {
           <div style={{ color: '#888', fontSize: 16, textAlign: 'center', padding: 40 }}>해당 카테고리의 게시글이 없습니다.</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {displayedPosts.map(post => (
-              <div key={post.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 2px 8px rgba(49,130,246,0.08)', border: '1px solid #e3f0ff', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {displayedPosts.map((post: any) => (
+              <div
+                key={post.id}
+                onClick={() => router.push(`/communities/${post.id}`)}
+                style={{
+                  background: '#fff',
+                  borderRadius: 12,
+                  boxShadow: '0 2px 8px rgba(49,130,246,0.08)',
+                  border: '1px solid #e3f0ff',
+                  padding: '20px 24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  cursor: 'pointer'
+                }}
+              >
                 <div style={{ fontWeight: 700, fontSize: 17, color: '#3182f6' }}>{post.title}</div>
-                <div style={{ fontSize: 14, color: '#888' }}>{post.category} | {post.author} | {post.date}</div>
+                <div style={{ fontSize: 14, color: '#888' }}>{post.category} | {post.nickname} | {post.createdAt ? post.createdAt.substring(0, 10) : ""}</div>
                 <div style={{ fontSize: 15, color: '#222', marginTop: 4 }}>{post.content}</div>
               </div>
             ))}
