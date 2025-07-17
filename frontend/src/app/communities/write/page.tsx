@@ -28,6 +28,7 @@ export default function CommunityWritePage() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(""); // 성공 메시지 상태 추가
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,11 +47,15 @@ export default function CommunityWritePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nickname, category, title, content }),
-        credentials: 'include', // 이 줄 추가
+        credentials: 'include',
       });
       if (res.ok) {
-        alert("게시글이 등록되었습니다.");
-        router.push("/communities");
+        setSuccess("게시글이 등록되었습니다."); // 성공 메시지 설정
+        setError("");
+        setTimeout(() => {
+          setSuccess("");
+          router.push("/communities");
+        }, 2000); // 2초 후 메시지 사라지고 이동
       } else {
         setError("게시글 등록에 실패했습니다.");
       }
@@ -61,6 +66,28 @@ export default function CommunityWritePage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", color: "#181A20", paddingBottom: 80 }}>
+      {/* 성공 토스트 메시지 */}
+      {success && (
+        <div style={{
+          position: "fixed",
+          top: 20,
+          left: 0,
+          right: 0,
+          margin: "0 auto",
+          maxWidth: 400,
+          zIndex: 1000,
+          background: "#3182f6",
+          color: "#fff",
+          padding: "14px 0",
+          borderRadius: 8,
+          textAlign: "center",
+          fontWeight: 600,
+          fontSize: 17,
+          boxShadow: "0 2px 8px rgba(49,130,246,0.15)"
+        }}>
+          {success}
+        </div>
+      )}
       <form onSubmit={handleSubmit} style={{ maxWidth: 600, margin: "0 auto", padding: "40px 0", display: "flex", flexDirection: "column", gap: 24 }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, color: "#3182f6", marginBottom: 12 }}>게시글 작성</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
