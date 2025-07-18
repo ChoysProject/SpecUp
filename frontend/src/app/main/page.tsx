@@ -90,6 +90,16 @@ const fieldIcons: Record<string, JSX.Element> = {
   "교육": <FaChalkboardTeacher color="#3182f6" size={28} style={{ marginRight: 10 }} />,
 };
 
+const fieldEmojis = {
+  "IT/개발": "💻",
+  "회계/금융": "💰",
+  "어학": "🌏",
+  "디자인": "🎨",
+  "건설/기계": "🏗️",
+  "교육": "👩‍��",
+  "전체": "📚"
+};
+
 export default function MainPage() {
   const [bannerIdx, setBannerIdx] = useState(0);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
