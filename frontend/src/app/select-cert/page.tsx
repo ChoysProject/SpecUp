@@ -46,6 +46,17 @@ const CERT_LIST = [
 
 const CATEGORY_LIST = Array.from(new Set(CERT_LIST.map(cert => cert.category)));
 
+const categoryEmojis: Record<string, string> = {
+  "IT/개발": "💻",
+  "의료/보건": "🏥",
+  "요리/식음료": "🍳",
+  "어학": "🌏",
+  "기계/전기": "⚙️",
+  "건설/안전": "🏗️",
+  "사회/교육": "👩‍🏫",
+  "경영/사무": "🗂️",
+};
+
 export default function SelectCertPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const router = useRouter();
@@ -115,7 +126,9 @@ export default function SelectCertPage() {
       </div>
       {CATEGORY_LIST.map(category => (
         <div key={category} style={{ marginBottom: 32 }}>
-          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 10, color: '#222' }}>{category}</div>
+          <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 10, color: '#222' }}>
+            {categoryEmojis[category] || ""} {category}
+          </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {CERT_LIST.filter(cert => cert.category === category).map(cert => (
               <button
